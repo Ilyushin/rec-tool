@@ -34,3 +34,7 @@ def main():
 
     # for name, conf in config.items():
     #     train_model(conf, eval_only=args.eval_only)
+
+
+if __name__ == '__main__':
+    main()
