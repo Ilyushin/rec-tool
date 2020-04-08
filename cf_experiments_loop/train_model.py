@@ -1,4 +1,6 @@
+import shutil
 import tensorflow as tf
+from signal_transformation import helpers
 
 
 def train_model(
@@ -10,8 +12,15 @@ def train_model(
         loss_fn=None,
         metrics_fn=None,
         batch_size=64,
-        epoch=10
+        epoch=10,
+        model_dir=None,
+        log_dir=None,
+        clear=False
 ):
+    if clear:
+        shutil.rmtree(model_dir, ignore_errors=True)
+        shutil.rmtree(log_dir, ignore_errors=True)
+
     model = model_fn(users_number=users_number, items_number=items_number)
     loss = loss_fn()
     metrics = [metric_fn() for metric_fn in metrics_fn]
@@ -26,11 +35,22 @@ def train_model(
 
     model.summary()
 
-    history = model.fit(
+    tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
+    history_train = model.fit(
         [train_data.user_id, train_data.item_id],
         train_data.rating,
-        epochs=5,
+        batch_size=batch_size,
+        epochs=epoch,
+        callbacks=[tensorboard_callback],
         verbose=1
     )
 
-    return None
+    helpers.create_dir(model_dir)
+    model.save(model_dir, save_format='tf')
+
+    history_eval = model.evaluate([test_data.user_id, test_data.item_id], test_data.rating)
+
+    print('Train loss:', history_train.history['loss'][len(history_train.history['loss'])-1])
+    print('Eval loss:', history_eval[0])
+
+    return history_train, history_eval

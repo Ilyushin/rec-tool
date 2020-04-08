@@ -23,21 +23,12 @@ MOVIE_COLUMNS = [ITEM_COLUMN, TITLE_COLUMN, GENRE_COLUMN]
 def prepare_data(
         dataset_type=None,
         clear=False,
-        movielens_path=None,
-        train_data_path=None,
-        eval_data_path=None,
-        test_data_path=None
+        movielens_path=None
 ):
     if clear:
         shutil.rmtree(movielens_path, ignore_errors=True)
-        shutil.rmtree(train_data_path, ignore_errors=True)
-        shutil.rmtree(eval_data_path, ignore_errors=True)
-        shutil.rmtree(test_data_path, ignore_errors=True)
 
     helpers.create_dir(movielens_path)
-    helpers.create_dir(train_data_path)
-    helpers.create_dir(eval_data_path)
-    helpers.create_dir(test_data_path)
 
     data_url = "http://files.grouplens.org/datasets/movielens/"
     raitings_file = "ratings.csv"

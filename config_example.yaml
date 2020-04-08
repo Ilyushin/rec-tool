@@ -14,7 +14,7 @@ config:
       cf_experiments_loop.metrics.accuracy
     ]
     batch_size: 250
-    epoch: 10
+    epoch: 30
 
   result:
     model: /tmp/cf_experiments_loop/model/

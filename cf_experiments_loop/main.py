@@ -41,10 +41,7 @@ def main():
         train_data, test_data, users_number, items_number = transformations_fn(
             dataset_type=input_data_conf['movielens']['type'],
             clear=input_data_conf['clear'],
-            movielens_path=input_data_conf['movielens']['path'],
-            train_data_path=input_data_conf['train']['path'],
-            eval_data_path=input_data_conf['eval']['path'],
-            test_data_path=input_data_conf['test']['path']
+            movielens_path=input_data_conf['movielens']['path']
         )
 
     print(users_number, items_number)
@@ -55,7 +52,11 @@ def main():
         metrics_fn = [fn(name) for name in model_conf['metrics']]
         batch_size = int(model_conf['batch_size'])
         epoch = int(model_conf['epoch'])
-        print(model_fn, loss_fn, metrics_fn, batch_size, epoch)
+
+        result_conf = config['config']['result']
+        model_dir = result_conf['model']
+        log_dir = result_conf['log']
+        clear = result_conf['clear']
 
         train_model(
             train_data=train_data,
@@ -66,7 +67,10 @@ def main():
             loss_fn=loss_fn,
             metrics_fn=metrics_fn,
             batch_size=batch_size,
-            epoch=epoch
+            epoch=epoch,
+            model_dir=model_dir,
+            log_dir=log_dir,
+            clear=clear
         )
 
 
