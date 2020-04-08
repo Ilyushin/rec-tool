@@ -1,4 +1,4 @@
-# Tool for simplifying to perform experiments with recommendation models
+# Tool for simplifying to perform experiments with collaborative filtering models
 
 1. Install the tool
 ```shell script
