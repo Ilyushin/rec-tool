@@ -6,15 +6,7 @@ config:
         use: true
         type: ml-1m
         path: /tmp/cf_experiments_loop/dataset/movielens
-      train:
-        path: /tmp/cf_experiments_loop/dataset/train
-      eval:
-        path: /tmp/cf_experiments_loop/dataset/eval
-      test:
-        path: /tmp/cf_experiments_loop/dataset/test
       transformations: cf_experiments_loop.transformations.movielens.prepare_data
-
-
   model:
     model: cf_experiments_loop.models.embedding.embedding_model
     loss: cf_experiments_loop.losses.mean_squared_error
