@@ -16,11 +16,14 @@ setuptools.setup(
     url="https://github.com/Ilyushin/cf-experiments-loop",
     packages=setuptools.find_packages(),
     package_dir={
-        'cf_experiments_loop': 'src',
+        'cf_experiments_loop': 'cf_experiments_loop',
+        'cf_experiments_loop.common': 'cf_experiments_loop/common',
+        'cf_experiments_loop.models': 'cf_experiments_loop/models',
+        'cf_experiments_loop.transformations': 'cf_experiments_loop/transformations',
     },
     entry_points={
         'console_scripts': [
-            'cf_experiments_loop=src.main:main',
+            'cf_experiments_loop=cf_experiments_loop.main:main',
         ],
     },
     classifiers=[
@@ -31,6 +34,8 @@ setuptools.setup(
     install_requires=[
         'tensorflow',
         'pylint',
-        'signal-transformation'
+        'signal-transformation',
+        'pyyaml',
+        'pandas'
     ],
 )
