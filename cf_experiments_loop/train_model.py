@@ -17,6 +17,7 @@ def train_model(
         log_dir=None,
         clear=False
 ):
+
     if clear:
         shutil.rmtree(model_dir, ignore_errors=True)
         shutil.rmtree(log_dir, ignore_errors=True)
