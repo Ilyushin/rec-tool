@@ -37,6 +37,8 @@ def train_model(
     model.summary()
 
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
+
+    # TODO: Fit for bpr and vae models with preprocessing
     history_train = model.fit(
         [train_data.user_id, train_data.item_id],
         train_data.rating,
