@@ -14,7 +14,7 @@ def mlp_slice_fn(x):
     return x[:, mf_dim:]
 
 
-def ncf_model(num_users, num_items, layers=[256, 256, 128, 64], reg_layers=[0, 0], rating_column='rating'):
+def ncf_model(users_number, items_number, layers=[256, 256, 128, 64], reg_layers=[0, 0], rating_column='rating'):
     user_input = tf.keras.layers.Input(shape=(1,), dtype='int32', name='user_input')
     item_input = tf.keras.layers.Input(shape=(1,), dtype='int32', name='item_input')
 
@@ -22,16 +22,16 @@ def ncf_model(num_users, num_items, layers=[256, 256, 128, 64], reg_layers=[0, 0
     embedding_initializer = 'glorot_uniform'
 
     embedding_user = tf.keras.layers.Embedding(
-        input_dim=num_users,
-        output_dim=layers[0] / 2,
+        input_dim=users_number,
+        output_dim=int(layers[0] / 2),
         name='user_embedding',
         embeddings_initializer=embedding_initializer,
         embeddings_regularizer=tf.keras.regularizers.l2(),
         input_length=1
     )(user_input)
     embedding_item = tf.keras.layers.Embedding(
-        input_dim=num_items,
-        output_dim=layers[0] / 2,
+        input_dim=items_number,
+        output_dim=int(layers[0] / 2),
         name='item_embedding',
         embeddings_initializer=embedding_initializer,
         embeddings_regularizer=tf.keras.regularizers.l2(),
