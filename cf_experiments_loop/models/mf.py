@@ -7,17 +7,18 @@ def mf(users_number: int, items_number: int):
     latent_dim, max_rating, min_rating, regs = 100, 5, 1, [0, 0]
 
     # define placeholder.
-    user_id_input = tf.keras.layers.Input(shape=[1], name='user')
-    item_id_input = tf.keras.layers.Input(shape=[1], name='item')
+    user_id_input = tf.keras.layers.Input(shape=(1,), dtype='int32', name='user_input')
+    item_id_input = tf.keras.layers.Input(shape=(1,), dtype='int32', name='item_input')
 
     # define embedding size and layers.
 
     user_embedding = tf.keras.layers.Embedding(output_dim=latent_dim, input_dim=users_number,
                                                input_length=1, name='user_embedding',
-                                               embeddings_regularizer=tf.keras.regularizers.l2(regs[0]))(user_id_input)
+                                               embeddings_regularizer=tf.keras.regularizers.l2())(user_id_input)
+
     item_embedding = tf.keras.layers.Embedding(output_dim=latent_dim, input_dim=items_number,
                                                input_length=1, name='item_embedding',
-                                               embeddings_regularizer=tf.keras.regularizers.l2(regs[1]))(item_id_input)
+                                               embeddings_regularizer=tf.keras.regularizers.l2())(item_id_input)
 
     x = tf.keras.layers.Concatenate()([user_embedding, item_embedding])
     x = tf.keras.layers.Dropout(0.05)(x)

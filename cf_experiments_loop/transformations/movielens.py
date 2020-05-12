@@ -1,5 +1,4 @@
 import os
-import functools
 import shutil
 import urllib
 import zipfile
@@ -8,6 +7,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from signal_transformation import helpers
+from cf_experiments_loop.models.bpr_model import bpr_preprocess_data
 
 GENRE_COLUMN = "genres"
 ITEM_COLUMN = "item_id"  # movies
@@ -18,6 +18,37 @@ USER_COLUMN = "user_id"
 
 RATING_COLUMNS = [USER_COLUMN, ITEM_COLUMN, RATING_COLUMN, TIMESTAMP_COLUMN]
 MOVIE_COLUMNS = [ITEM_COLUMN, TITLE_COLUMN, GENRE_COLUMN]
+
+
+def _transform_csv(input_path, output_path, names, skip_first, separator=","):
+    """Transform csv to a regularized format.
+
+    Args:
+      input_path: The path of the raw csv.
+      output_path: The path of the cleaned csv.
+      names: The csv column names.
+      skip_first: Boolean of whether to skip the first line of the raw csv.
+      separator: Character used to separate fields in the raw csv.
+    """
+    if six.PY2:
+        names = [six.ensure_text(n, "utf-8") for n in names]
+
+    with tf.io.gfile.GFile(output_path, "wb") as f_out, \
+            tf.io.gfile.GFile(input_path, "rb") as f_in:
+
+        # Write column names to the csv.
+        f_out.write(",".join(names).encode("utf-8"))
+        f_out.write(b"\n")
+        for i, line in enumerate(f_in):
+            if i == 0 and skip_first:
+                continue  # ignore existing labels in the csv
+
+            line = six.ensure_text(line, "utf-8", errors="ignore")
+            fields = line.split(separator)
+            if separator != ",":
+                fields = ['"{}"'.format(field) if "," in field else field
+                          for field in fields]
+            f_out.write(",".join(fields).encode("utf-8"))
 
 
 def prepare_data(
@@ -69,32 +100,27 @@ def prepare_data(
     return train_data, test_data, users_number, items_number
 
 
-def _transform_csv(input_path, output_path, names, skip_first, separator=","):
-    """Transform csv to a regularized format.
+def bpr_movielens(dataset_type=None,
+                  clear=False,
+                  movielens_path=None):
+    train_data, test_data, users_number, items_number = prepare_data(dataset_type=dataset_type,
+                                                                     clear=clear,
+                                                                     movielens_path=movielens_path)
 
-    Args:
-      input_path: The path of the raw csv.
-      output_path: The path of the cleaned csv.
-      names: The csv column names.
-      skip_first: Boolean of whether to skip the first line of the raw csv.
-      separator: Character used to separate fields in the raw csv.
-    """
-    if six.PY2:
-        names = [six.ensure_text(n, "utf-8") for n in names]
+    train_data = bpr_preprocess_data(users=train_data.user_id,
+                                     items=train_data.item_id,
+                                     rating=train_data.rating,
+                                     rating_threshold=3)
 
-    with tf.io.gfile.GFile(output_path, "wb") as f_out, \
-            tf.io.gfile.GFile(input_path, "rb") as f_in:
+    test_data = bpr_preprocess_data(users=test_data.user_id,
+                                    items=test_data.item_id,
+                                    rating=test_data.rating,
+                                    rating_threshold=3)
 
-        # Write column names to the csv.
-        f_out.write(",".join(names).encode("utf-8"))
-        f_out.write(b"\n")
-        for i, line in enumerate(f_in):
-            if i == 0 and skip_first:
-                continue  # ignore existing labels in the csv
+    return train_data, test_data, users_number, items_number
 
-            line = six.ensure_text(line, "utf-8", errors="ignore")
-            fields = line.split(separator)
-            if separator != ",":
-                fields = ['"{}"'.format(field) if "," in field else field
-                          for field in fields]
-            f_out.write(",".join(fields).encode("utf-8"))
+
+print(prepare_data(dataset_type='ml-1m',
+                   clear=True,
+                   movielens_path='/tmp/cf_experiments_loop/dataset/movielens'))
+

@@ -15,10 +15,10 @@ def svd(users_number: int, items_number: int):
 
     user_embedding = tf.keras.layers.Embedding(output_dim=latent_dim, input_dim=users_number,
                                                input_length=1, name='user_embedding',
-                                               embeddings_regularizer=tf.keras.regularizers.l2(regs[0]))(user_id_input)
+                                               embeddings_regularizer=tf.keras.regularizers.l2())(user_id_input)
     item_embedding = tf.keras.layers.Embedding(output_dim=latent_dim, input_dim=items_number,
                                                input_length=1, name='item_embedding',
-                                               embeddings_regularizer=tf.keras.regularizers.l2(regs[1]))(item_id_input)
+                                               embeddings_regularizer=tf.keras.regularizers.l2())(item_id_input)
 
     user_bias = tf.keras.layers.Embedding(input_dim=users_number, output_dim=1)(user_id_input)
     item_bias = tf.keras.layers.Embedding(input_dim=items_number, output_dim=1)(item_id_input)
