@@ -22,7 +22,7 @@ def ncf_model(users_number, items_number, layers=[256, 256, 128, 64], reg_layers
     embedding_initializer = 'glorot_uniform'
 
     embedding_user = tf.keras.layers.Embedding(
-        input_dim=users_number,
+        input_dim=users_number + 1,
         output_dim=int(layers[0] / 2),
         name='user_embedding',
         embeddings_initializer=embedding_initializer,
@@ -30,7 +30,7 @@ def ncf_model(users_number, items_number, layers=[256, 256, 128, 64], reg_layers
         input_length=1
     )(user_input)
     embedding_item = tf.keras.layers.Embedding(
-        input_dim=items_number,
+        input_dim=items_number + 1,
         output_dim=int(layers[0] / 2),
         name='item_embedding',
         embeddings_initializer=embedding_initializer,
