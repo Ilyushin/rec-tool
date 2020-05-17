@@ -14,7 +14,11 @@ def mlp_slice_fn(x):
     return x[:, mf_dim:]
 
 
-def ncf_model(users_number, items_number, layers=[256, 256, 128, 64], reg_layers=[0, 0], rating_column='rating'):
+def ncf_model(users_number, items_number,
+              model_layers=[64, 32, 16, 8],
+              reg_layers=[0.0, 0.0, 0.0, 0.0],
+              rating_column='rating'):
+
     user_input = tf.keras.layers.Input(shape=(1,), dtype='int32', name='user_input')
     item_input = tf.keras.layers.Input(shape=(1,), dtype='int32', name='item_input')
 
@@ -60,10 +64,10 @@ def ncf_model(users_number, items_number, layers=[256, 256, 128, 64], reg_layers
     # Concatenation of two latent features
     mlp_vector = tf.keras.layers.concatenate([mlp_user_latent, mlp_item_latent])
 
-    num_layer = len(layers)  # Number of layers in the MLP
+    num_layer = len(model_layers)  # Number of layers in the MLP
     for layer in range(1, num_layer):
         model_layer = tf.keras.layers.Dense(
-            layers[layer],
+            model_layers[layer],
             kernel_regularizer=tf.keras.regularizers.l2(),
             activation='relu')
         mlp_vector = model_layer(mlp_vector)
@@ -81,5 +85,13 @@ def ncf_model(users_number, items_number, layers=[256, 256, 128, 64], reg_layers
 
     # Print model topology.
     model = tf.keras.models.Model([user_input, item_input], logits)
+
+    # zeros = tf.keras.layers.Lambda(
+    #     lambda x: x * 0)(model.output)
+    #
+    # softmax_logits = tf.keras.layers.concatenate(
+    #     [zeros, model.output],
+    #     axis=-1)
+    model.summary()
 
     return model
