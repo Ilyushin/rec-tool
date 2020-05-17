@@ -33,6 +33,8 @@ def bookcrossing_converting(file_path='bookcrossing/BX-Book-Ratings.csv'):
     shutil.rmtree('bookcrossing')
     print(train_data)
 
-    return train_data["User-ID"], train_data["ISBN"], train_data["Book-Rating"]
+    return pd.DataFrame({'user_id': train_data["User-ID"],
+                         'item_id': train_data["ISBN"],
+                         'rating': train_data["Book-Rating"]})
 
 

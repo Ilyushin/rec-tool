@@ -2,8 +2,10 @@ import os
 import sys
 import yaml
 import argparse
+from functools import partial
 from cf_experiments_loop.common import fn
 from cf_experiments_loop.train_model import train_model
+from .bayesian_optimization import fit_bayesian_opt
 
 
 def parse_args():
@@ -50,8 +52,15 @@ def main():
         model_fn = fn(model_conf['model'])
         loss_fn = fn(model_conf['loss'])
         metrics_fn = [fn(name) for name in model_conf['metrics']]
-        batch_size = int(model_conf['batch_size'])
-        epoch = int(model_conf['epoch'])
+        batch_size = model_conf['batch_size']
+        epoch = model_conf['epoch']
+
+        if isinstance(batch_size, list) or isinstance(epoch, list):
+            grid_search = True
+        else:
+            grid_search = False
+
+        bayesian_opt = model_conf['bayesian_opt']
 
         result_conf = config['config']['result']
         model_dir = result_conf['model']
@@ -62,7 +71,7 @@ def main():
             train_data=train_data,
             test_data=test_data,
             users_number=users_number,
-            items_number=users_number,
+            items_number=items_number,
             model_fn=model_fn,
             loss_fn=loss_fn,
             metrics_fn=metrics_fn,
@@ -70,8 +79,31 @@ def main():
             epoch=epoch,
             model_dir=model_dir,
             log_dir=log_dir,
-            clear=clear
+            clear=clear,
+            grid_search=grid_search,
         )
+
+        if bayesian_opt:
+            partial_train_model = partial(train_model,
+                                          train_data,
+                                          test_data,
+                                          users_number,
+                                          items_number,
+                                          model_fn,
+                                          loss_fn,
+                                          metrics_fn,
+                                          batch_size,
+                                          epoch,
+                                          model_dir,
+                                          log_dir,
+                                          clear,
+                                          grid_search)
+
+            best_param, opt_results = fit_bayesian_opt(batch_size=batch_size,
+                                                       epoch=epoch,
+                                                       partial_train_model=partial_train_model)
+
+            # TODO: save results into MLFLOW
 
 
 if __name__ == '__main__':
