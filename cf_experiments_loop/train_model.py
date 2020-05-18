@@ -52,8 +52,6 @@ def train_model(
     )
 
     predictions = model.predict([test_data.user_id, test_data.item_id])
-    test_performance = mse(test_data.rating, predictions)
-    print('test performance', test_performance)
 
     helpers.create_dir(model_dir)
     model.save(model_dir, save_format='tf')
