@@ -16,7 +16,11 @@ config:
     ]
     loss: cf_experiments_loop.losses.mean_squared_error
     metrics: [
-      cf_experiments_loop.metrics.accuracy
+      cf_experiments_loop.metrics.accuracy,
+      cf_experiments_loop.metrics.auc,
+      cf_experiments_loop.metrics.recall,
+      cf_experiments_loop.metrics.rmse,
+      cf_experiments_loop.metrics.mse
     ]
     batch_size: [100, 200]
     epoch: [30, 40]

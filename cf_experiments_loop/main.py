@@ -6,7 +6,7 @@ import tensorflow as tf
 import pandas as pd
 from cf_experiments_loop.common import fn
 from cf_experiments_loop.train_model import train_model
-from cf_experiments_loop.ml_flow.ml_flow import log_to_mlflow
+from ml_flow.ml_flow import log_to_mlflow
 
 
 def parse_args():
@@ -97,8 +97,9 @@ def main():
                                           params={'batch_size': batch,
                                                   'epoch': e,
                                                   'optimizer': str(optimizer)},
+                                          metrics={'metrics': history_eval},
                                           tags={'dataset': 'movielens'},
-                                          artifacts=history_eval)
+                                          artifacts=[model_dir, eval_dir])
 
                             # write to csv file
                             pd.DataFrame({

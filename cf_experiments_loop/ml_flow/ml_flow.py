@@ -1,11 +1,4 @@
 import mlflow
-import numpy as np
-from keras.datasets import mnist
-from time import time
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
-from sklearn.metrics import f1_score
-from sklearn.model_selection import ParameterGrid
 
 mlflow.set_tracking_uri("http://10.20.2.3:8000")
 
