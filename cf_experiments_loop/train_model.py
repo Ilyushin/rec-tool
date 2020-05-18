@@ -1,6 +1,7 @@
 import shutil
 import tensorflow as tf
 from signal_transformation import helpers
+from cf_experiments_loop.metrics import auc, recall, mse
 
 
 def train_model(
@@ -47,6 +48,9 @@ def train_model(
         verbose=1
     )
 
+    predictions = model.predict([test_data.user_id, test_data.item_id])
+    test_performance = mse(test_data.rating, predictions)
+
     helpers.create_dir(model_dir)
     model.save(model_dir, save_format='tf')
 
@@ -55,4 +59,4 @@ def train_model(
     print('Train loss:', history_train.history['loss'][len(history_train.history['loss'])-1])
     print('Eval loss:', history_eval[0])
 
-    return history_train, history_eval
+    return history_train, history_eval, test_performance

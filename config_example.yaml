@@ -17,13 +17,11 @@ config:
     loss: cf_experiments_loop.losses.mean_squared_error
     metrics: [
       cf_experiments_loop.metrics.accuracy,
-      cf_experiments_loop.metrics.auc,
-      cf_experiments_loop.metrics.recall,
       cf_experiments_loop.metrics.rmse,
-      cf_experiments_loop.metrics.mse
+      cf_experiments_loop.metrics.mae
     ]
-    batch_size: [100, 200]
-    epoch: [30, 40]
+    batch_size: [128, 256, 512, 1024, 2048]
+    epoch: [10, 20, 30, 40, 50, 100]
     optimizers: all
     grid_search: True
 
@@ -31,5 +29,5 @@ config:
   result:
     model: /tmp/cf_experiments_loop/model/
     log: /tmp/cf_experiments_loop/log/
-    eval_results: /tmp/cf_experiments_loop/results/
+    results_csv: results.csv
     clear: true

@@ -6,7 +6,7 @@ import tensorflow as tf
 import pandas as pd
 from cf_experiments_loop.common import fn
 from cf_experiments_loop.train_model import train_model
-from ml_flow.ml_flow import log_to_mlflow
+from cf_experiments_loop.ml_flow.ml_flow import log_to_mlflow
 
 
 def parse_args():
@@ -59,7 +59,7 @@ def main():
         result_conf = config['config']['result']
         model_dir = result_conf['model']
         log_dir = result_conf['log']
-        eval_dir = result_conf['eval_results']
+        results_csv = result_conf['results_csv']
         clear = result_conf['clear']
 
         # define optimizers
@@ -75,7 +75,7 @@ def main():
                     for e in map(int, epoch):
                         for optimizer in optimizers:
 
-                            history_train, history_eval = train_model(
+                            history_train, history_eval, test_performance = train_model(
                                 train_data=train_data,
                                 test_data=test_data,
                                 users_number=users_number,
@@ -97,9 +97,9 @@ def main():
                                           params={'batch_size': batch,
                                                   'epoch': e,
                                                   'optimizer': str(optimizer)},
-                                          metrics={'metrics': history_eval},
+                                          metrics={'metrics': test_performance},
                                           tags={'dataset': 'movielens'},
-                                          artifacts=[model_dir, eval_dir])
+                                          artifacts=[model_dir, results_csv])
 
                             # write to csv file
                             pd.DataFrame({
@@ -107,13 +107,13 @@ def main():
                                 'batch_size': batch,
                                 'epoch': e,
                                 'optimizer': str(optimizer),
-                                'results': history_eval
-                            }).to_csv(eval_dir, mode='a')
+                                'results': test_performance
+                            }).to_csv(results_csv)
 
 
         else:
 
-            history_train, history_eval = train_model(
+            history_train, history_eval, test_performance = train_model(
                 train_data=train_data,
                 test_data=test_data,
                 users_number=users_number,
@@ -135,8 +135,8 @@ def main():
                 'batch_size': batch_size,
                 'epoch': epoch,
                 'optimizer': 'Adam',
-                'results': history_eval
-            }).to_csv(eval_dir, mode='a')
+                'results': test_performance
+            }).to_csv(results_csv)
 
 
 if __name__ == '__main__':
