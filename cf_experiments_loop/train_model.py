@@ -15,7 +15,7 @@ def train_model(
         model_dir=None,
         log_dir=None,
         clear=False,
-        optimizer=tf.keras.optimizers.Adam(),
+        optimizer=None,
         batch_size=64,
         epoch=10,
 ):

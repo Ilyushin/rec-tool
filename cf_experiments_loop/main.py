@@ -56,7 +56,7 @@ def main():
         batch_size = model_conf['batch_size']
         epoch = model_conf['epoch']
         grid_search = model_conf['grid_search']
-        optimizers = [fn(opt) for opt in model_conf['optimizers']]
+        optimizers = model_conf['optimizers']
         result_conf = config['config']['result']
         model_dir = result_conf['model']
         log_dir = result_conf['log']
@@ -65,16 +65,19 @@ def main():
 
         # define optimizers
         if optimizers == 'all':
-            optimizers = [tf.keras.optimizers.SGD(),
-                          tf.keras.optimizers.RMSprop(),
-                          tf.keras.optimizers.Adam()]
+            opts = [tf.keras.optimizers.SGD(),
+                    tf.keras.optimizers.RMSprop(),
+                    tf.keras.optimizers.Adam()]
+
+        else:
+            opts = [tf.keras.optimizers.Adam()]
 
         # Start grid search
         if grid_search and isinstance(batch_size, list) and isinstance(epoch, list):
             for model in model_fn:
                 for batch in map(int, batch_size):
                     for e in map(int, epoch):
-                        for optimizer in optimizers:
+                        for optimizer in opts:
 
                             start = time()
 
