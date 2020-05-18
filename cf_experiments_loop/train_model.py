@@ -65,7 +65,7 @@ def train_model(
     print('Eval loss:', history_eval[0])
 
     # write to MLFlow
-    log_to_mlflow(project_name='Recommendations',
+    log_to_mlflow(project_name='Recommendation system results',
                   group_name=str(model),
                   params={'batch_size': batch_size,
                           'epoch': epoch,
