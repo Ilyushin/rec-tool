@@ -23,8 +23,6 @@ def train_model(
         epoch=10,
 ):
 
-    start = time()
-
     if clear:
         shutil.rmtree(model_dir, ignore_errors=True)
         shutil.rmtree(log_dir, ignore_errors=True)
@@ -55,6 +53,7 @@ def train_model(
 
     predictions = model.predict([test_data.user_id, test_data.item_id])
     test_performance = mse(test_data.rating, predictions)
+    print('test performance', test_performance)
 
     helpers.create_dir(model_dir)
     model.save(model_dir, save_format='tf')
@@ -63,28 +62,5 @@ def train_model(
 
     print('Train loss:', history_train.history['loss'][len(history_train.history['loss'])-1])
     print('Eval loss:', history_eval[0])
-
-    # write to MLFlow
-    log_to_mlflow(project_name='Recommendation system results',
-                  group_name=str(model),
-                  params={'batch_size': batch_size,
-                          'epoch': epoch,
-                          'optimizer': str(optimizer),
-                          'run_time': time() - start},
-                  metrics={'metrics': test_performance},
-                  tags={'dataset': 'movielens'},
-                  artifacts=[model_dir])
-
-    print('uploaded to MLFlow')
-    print(test_performance)
-
-    # write to csv file
-    pd.DataFrame({
-        'model': str(model),
-        'batch_size': batch_size,
-        'epoch': epoch,
-        'optimizer': str(optimizer),
-        'results': history_eval
-    }).to_csv('results.csv')
 
     return history_train, history_eval

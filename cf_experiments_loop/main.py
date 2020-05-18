@@ -79,6 +79,8 @@ def main():
                     for e in map(int, epoch):
                         for optimizer in opts:
 
+                            start = time()
+
                             history_train, history_eval = train_model(
                                 train_data=train_data,
                                 test_data=test_data,
@@ -94,6 +96,29 @@ def main():
                                 epoch=e,
                                 optimizer=optimizer
                             )
+
+                            # write to MLFlow
+                            log_to_mlflow(project_name='Recommendation system results',
+                                          group_name=str(model),
+                                          params={'batch_size': batch_size,
+                                                  'epoch': epoch,
+                                                  'optimizer': str(optimizer),
+                                                  'run_time': time() - start},
+                                          metrics={'metrics': history_eval[0]},
+                                          tags={'dataset': 'movielens'},
+                                          artifacts=[model_dir])
+
+                            print('uploaded to MLFlow')
+                            print(history_eval[0])
+
+                            # write to csv file
+                            pd.DataFrame({
+                                'model': str(model),
+                                'batch_size': batch_size,
+                                'epoch': epoch,
+                                'optimizer': str(optimizer),
+                                'results': history_eval[0]
+                            }).to_csv('results.csv')
 
         else:
 
