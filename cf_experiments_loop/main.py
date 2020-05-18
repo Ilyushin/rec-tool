@@ -56,7 +56,7 @@ def main():
         batch_size = model_conf['batch_size']
         epoch = model_conf['epoch']
         grid_search = model_conf['grid_search']
-        optimizers = model_conf['optimizers']
+        optimizers = [fn(opt) for opt in model_conf['optimizers']]
         result_conf = config['config']['result']
         model_dir = result_conf['model']
         log_dir = result_conf['log']
