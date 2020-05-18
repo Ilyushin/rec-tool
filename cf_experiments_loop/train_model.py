@@ -1,7 +1,10 @@
 import shutil
+from time import time
 import tensorflow as tf
+import pandas as pd
 from signal_transformation import helpers
 from cf_experiments_loop.metrics import auc, recall, mse
+from cf_experiments_loop.ml_flow.ml_flow import log_to_mlflow
 
 
 def train_model(
@@ -19,6 +22,8 @@ def train_model(
         batch_size=64,
         epoch=10,
 ):
+
+    start = time()
 
     if clear:
         shutil.rmtree(model_dir, ignore_errors=True)
@@ -59,4 +64,24 @@ def train_model(
     print('Train loss:', history_train.history['loss'][len(history_train.history['loss'])-1])
     print('Eval loss:', history_eval[0])
 
-    return history_train, history_eval, test_performance
+    # write to MLFlow
+    log_to_mlflow(project_name='Recommendations',
+                  group_name=str(model),
+                  params={'batch_size': batch_size,
+                          'epoch': epoch,
+                          'optimizer': str(optimizer),
+                          'run_time': time() - start},
+                  metrics={'metrics': test_performance},
+                  tags={'dataset': 'movielens'},
+                  artifacts=[model_dir])
+
+    # write to csv file
+    pd.DataFrame({
+        'model': str(model),
+        'batch_size': batch_size,
+        'epoch': epoch,
+        'optimizer': str(optimizer),
+        'results': history_eval
+    }).to_csv('results.csv')
+
+    return history_train, history_eval
