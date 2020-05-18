@@ -75,6 +75,9 @@ def train_model(
                   tags={'dataset': 'movielens'},
                   artifacts=[model_dir])
 
+    print('uploaded to MLFlow')
+    print(test_performance)
+
     # write to csv file
     pd.DataFrame({
         'model': str(model),
