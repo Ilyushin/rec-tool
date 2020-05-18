@@ -96,6 +96,7 @@ def main():
                                 epoch=e,
                                 optimizer=optimizer
                             )
+                            print(history_eval[-1])
 
                             # write to MLFlow
                             log_to_mlflow(project_name='Recommendation system results',
@@ -104,7 +105,7 @@ def main():
                                                   'epoch': epoch,
                                                   'optimizer': str(optimizer),
                                                   'run_time': time() - start},
-                                          metrics={'metrics': history_eval[0]},
+                                          metrics={'eval': history_eval[-1], 'time': time() - start},
                                           tags={'dataset': 'movielens'},
                                           artifacts=[model_dir])
 
@@ -124,7 +125,7 @@ def main():
 
             start = time()
 
-            history_train, history_eval, test_performance = train_model(
+            history_train, history_eval = train_model(
                 train_data=train_data,
                 test_data=test_data,
                 users_number=users_number,
@@ -147,7 +148,7 @@ def main():
                                   'epoch': epoch,
                                   'optimizer': 'Adam',
                                   'run_time': time() - start},
-                          metrics={'metrics': test_performance},
+                          metrics={'metrics': history_eval[-1]},
                           tags={'dataset': 'movielens'},
                           artifacts=[model_dir, results_csv])
 
@@ -157,7 +158,7 @@ def main():
                 'batch_size': batch_size,
                 'epoch': epoch,
                 'optimizer': 'Adam',
-                'results': test_performance
+                'results': history_eval[-1]
             }).to_csv(results_csv)
 
 
