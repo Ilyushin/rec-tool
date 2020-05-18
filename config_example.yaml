@@ -8,16 +8,24 @@ config:
         path: /tmp/cf_experiments_loop/dataset/movielens
       transformations: cf_experiments_loop.transformations.movielens.prepare_data
   model:
-    model: cf_experiments_loop.models.embedding.embedding_model
+    model: [
+      cf_experiments_loop.models.embedding.embedding_model,
+      cf_experiments_loop.models.ncf.ncf_model,
+      cf_experiments_loop.models.mf.mf,
+      cf_experiments_loop.models.svd.svd,
+    ]
     loss: cf_experiments_loop.losses.mean_squared_error
     metrics: [
       cf_experiments_loop.metrics.accuracy
     ]
-    batch_size: [50, 100, 200, 250]
-    epoch: [10, 20, 30]
-    bayesian_opt: True
+    batch_size: [100, 200]
+    epoch: [30, 40]
+    optimizers: all
+    grid_search: True
+
 
   result:
     model: /tmp/cf_experiments_loop/model/
     log: /tmp/cf_experiments_loop/log/
+    eval_results: /tmp/cf_experiments_loop/results/
     clear: true

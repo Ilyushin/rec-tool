@@ -2,10 +2,11 @@ import os
 import sys
 import yaml
 import argparse
-from functools import partial
+import tensorflow as tf
+import pandas as pd
 from cf_experiments_loop.common import fn
 from cf_experiments_loop.train_model import train_model
-from .bayesian_optimization import fit_bayesian_opt
+from cf_experiments_loop.ml_flow.ml_flow import log_to_mlflow
 
 
 def parse_args():
@@ -46,64 +47,95 @@ def main():
             movielens_path=input_data_conf['movielens']['path']
         )
 
-    print(users_number, items_number)
     if users_number and items_number:
         model_conf = config['config']['model']
-        model_fn = fn(model_conf['model'])
+        model_fn = [fn(model) for model in model_conf['model']]
         loss_fn = fn(model_conf['loss'])
         metrics_fn = [fn(name) for name in model_conf['metrics']]
         batch_size = model_conf['batch_size']
         epoch = model_conf['epoch']
-
-        if isinstance(batch_size, list) or isinstance(epoch, list):
-            grid_search = True
-        else:
-            grid_search = False
-
-        bayesian_opt = model_conf['bayesian_opt']
-
+        grid_search = model_conf['grid_search']
+        optimizers = model_conf['optimizers']
         result_conf = config['config']['result']
         model_dir = result_conf['model']
         log_dir = result_conf['log']
+        eval_dir = result_conf['eval_results']
         clear = result_conf['clear']
 
-        train_model(
-            train_data=train_data,
-            test_data=test_data,
-            users_number=users_number,
-            items_number=items_number,
-            model_fn=model_fn,
-            loss_fn=loss_fn,
-            metrics_fn=metrics_fn,
-            batch_size=batch_size,
-            epoch=epoch,
-            model_dir=model_dir,
-            log_dir=log_dir,
-            clear=clear,
-            grid_search=grid_search,
-        )
+        # define optimizers
+        if optimizers == 'all':
+            optimizers = [tf.keras.optimizers.SGD(),
+                          tf.keras.optimizers.RMSprop(),
+                          tf.keras.optimizers.Adam()]
 
-        if bayesian_opt:
-            partial_train_model = partial(train_model,
-                                          train_data,
-                                          test_data,
-                                          users_number,
-                                          items_number,
-                                          model_fn,
-                                          loss_fn,
-                                          metrics_fn,
-                                          batch_size,
-                                          epoch,
-                                          model_dir,
-                                          log_dir,
-                                          clear,
-                                          grid_search)
+        # Start grid search
+        if grid_search and isinstance(batch_size, list) and isinstance(epoch, list):
+            for model in model_fn:
+                for batch in map(int, batch_size):
+                    for e in map(int, epoch):
+                        for optimizer in optimizers:
 
-            best_param, opt_results = fit_bayesian_opt(batch_size=batch_size,
-                                                       epoch=epoch,
-                                                       partial_train_model=partial_train_model)
+                            history_train, history_eval = train_model(
+                                train_data=train_data,
+                                test_data=test_data,
+                                users_number=users_number,
+                                items_number=users_number,
+                                model_fn=model,
+                                loss_fn=loss_fn,
+                                metrics_fn=metrics_fn,
+                                model_dir=model_dir,
+                                log_dir=log_dir,
+                                clear=clear,
+                                batch_size=batch,
+                                epoch=e,
+                                optimizer=optimizer
+                            )
 
-            # TODO: save results into MLFLOW
+                            # write to MLFlow
+                            log_to_mlflow(project_name='Recommendations',
+                                          group_name=str(model),
+                                          params={'batch_size': batch,
+                                                  'epoch': e,
+                                                  'optimizer': str(optimizer)},
+                                          tags={'dataset': 'movielens'},
+                                          artifacts=history_eval)
+
+                            # write to csv file
+                            pd.DataFrame({
+                                'model': str(model),
+                                'batch_size': batch,
+                                'epoch': e,
+                                'optimizer': str(optimizer),
+                                'results': history_eval
+                            }).to_csv(eval_dir, mode='a')
+
+
+        else:
+
+            history_train, history_eval = train_model(
+                train_data=train_data,
+                test_data=test_data,
+                users_number=users_number,
+                items_number=users_number,
+                model_fn=model_fn,
+                loss_fn=loss_fn,
+                metrics_fn=metrics_fn,
+                model_dir=model_dir,
+                log_dir=log_dir,
+                clear=clear,
+                batch_size=batch_size,
+                epoch=epoch,
+                optimizer=tf.keras.optimizers.Adam()
+            )
+
+            # write to csv file
+            pd.DataFrame({
+                'model': str(model_fn),
+                'batch_size': batch_size,
+                'epoch': epoch,
+                'optimizer': 'Adam',
+                'results': history_eval
+            }).to_csv(eval_dir, mode='a')
 
 
 if __name__ == '__main__':

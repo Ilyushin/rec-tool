@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 
 
-def vaesf_preprocess(users: list, items: list, ratings: list):
+def vaeсf_preprocess(users: list, items: list, ratings: list):
     """
     :param users: list of users
     :param items: list of items
