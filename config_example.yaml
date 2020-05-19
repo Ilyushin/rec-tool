@@ -30,4 +30,5 @@ config:
     model: /tmp/cf_experiments_loop/model/
     log: /tmp/cf_experiments_loop/log/
     results_csv: results.csv
+    log_to_ml_flow: False
     clear: true

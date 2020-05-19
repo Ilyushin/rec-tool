@@ -20,6 +20,7 @@ setuptools.setup(
         'cf_experiments_loop.common': 'cf_experiments_loop/common',
         'cf_experiments_loop.models': 'cf_experiments_loop/models',
         'cf_experiments_loop.transformations': 'cf_experiments_loop/transformations',
+        'cf_experiments_loop.ml_flow': 'cf_experiments_loop/ml_flow',
     },
     entry_points={
         'console_scripts': [
@@ -36,6 +37,8 @@ setuptools.setup(
         'pylint',
         'signal-transformation',
         'pyyaml',
-        'pandas'
+        'pandas',
+        'mlflow',
+        'tqdm'
     ],
 )
