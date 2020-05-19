@@ -21,10 +21,8 @@ def parse_args():
 
     """
     parser = argparse.ArgumentParser(description='Model training tool.')
-    parser.add_argument('--config', dest='config', default='config_example.yaml',
-                        help='Configuration description file')
-    parser.add_argument('--eval-only', dest='eval_only', action='store_true', default=False,
-                        help='Run only evaluation')
+    parser.add_argument('--config', dest='config', default='config_example.yaml', help='Configuration description file')
+    parser.add_argument('--eval-only', dest='eval_only', action='store_true', default=False, help='Run only evaluation')
 
     return parser.parse_args()
 
@@ -52,11 +50,13 @@ def main():
 
     if users_number and items_number:
         model_conf = config['config']['model']
-        # model_fn = [fn(model) for model in model_conf['model']]
+        dataset_name = config['config']['data']['input_data']['movielens']['type']
+        model_fn = model_conf['model']
         loss_fn = fn(model_conf['loss'])
         metrics_fn = [fn(name) for name in model_conf['metrics']]
         batch_size = model_conf['batch_size']
         epoch = model_conf['epoch']
+        learning_rate = model_conf['learning_rate']
         grid_search = model_conf['grid_search']
         optimizers = model_conf['optimizers']
         result_conf = config['config']['result']
@@ -81,7 +81,7 @@ def main():
 
         # Start grid search
         if grid_search and isinstance(batch_size, list) and isinstance(epoch, list):
-            for model_path in model_conf['model']:
+            for model_path in model_fn:
                 for batch in map(int, batch_size):
                     for e in map(int, epoch):
                         for optimizer in opts:
@@ -105,21 +105,23 @@ def main():
                             )
                             print('history_eval:', history_eval)
 
-                            # write to MLFlow
                             if log_to_ml_flow:
-                                log_to_mlflow(project_name='Recommendation system results',
-                                              group_name=str(model_path),
+                                # write to MLFlow
+                                log_to_mlflow(project_name='Recommendation system experiments',
+                                              group_name=fn(model_path).__name__,
                                               params={'batch_size': batch,
                                                       'epoch': e,
-                                                      'optimizer': optimizer.__name__,
+                                                      'optimizer': 'Adam',
                                                       'run_time': time() - start},
-                                              metrics={'eval': history_eval[-1],
-                                                       'time': time() - start},
-                                              tags={
-                                                  'dataset': input_data_conf['movielens']['type']},
+                                              metrics={
+                                                  metric.split('.')[-1]:
+                                                      history_eval[model_conf['metrics'].index(metric) + 1]
+                                                  for metric in model_conf['metrics']
+                                              },
+                                              tags={'dataset': dataset_name},
                                               artifacts=[model_dir])
 
-                                print('uploaded to MLFlow')
+                                print('Uploaded to MLFlow')
 
                             # write to csv file
                             if df_results.empty:
@@ -162,15 +164,21 @@ def main():
 
             # write to MLFlow
             if log_to_ml_flow:
-                log_to_mlflow(project_name='Recommendations',
-                              group_name=str(model_path),
+
+                # write to MLFlow
+                log_to_mlflow(project_name='Recommendation system experiments',
+                              group_name=model_fn.__name__,
                               params={'batch_size': batch_size,
                                       'epoch': epoch,
-                                      'optimizer': optimizer.__name__,
+                                      'optimizer': 'Adam',
                                       'run_time': time() - start},
-                              metrics={'metrics': history_eval[-1]},
-                              tags={'dataset': input_data_conf['movielens']['type']},
-                              artifacts=[model_dir, results_csv])
+                              metrics={
+                                  metric.split('.')[-1]:
+                                      history_eval[model_conf['metrics'].index(metric) + 1]
+                                  for metric in model_conf['metrics']
+                              },
+                              tags={'dataset': dataset_name},
+                              artifacts=[model_dir])
 
             # write to csv file
             if df_results.empty:
