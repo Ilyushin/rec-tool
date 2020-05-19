@@ -1,0 +1,33 @@
+config:
+  data:
+    input_data:
+      clear: true
+      movielens:
+        use: true
+        type: ml-1m
+        path: /tmp/cf_experiments_loop/dataset/movielens
+      transformations: cf_experiments_loop.transformations.movielens.prepare_data
+  model:
+    model: [
+      cf_experiments_loop.models.embedding.embedding_model,
+      cf_experiments_loop.models.ncf.ncf_model,
+      cf_experiments_loop.models.mf.mf,
+      cf_experiments_loop.models.svd.svd,
+    ]
+    loss: cf_experiments_loop.losses.mean_squared_error
+    metrics: [
+      cf_experiments_loop.metrics.accuracy,
+      cf_experiments_loop.metrics.rmse,
+      cf_experiments_loop.metrics.mae
+    ]
+    batch_size: [128, 256, 512, 1024, 2048]
+    epoch: [10, 20, 30, 40, 50, 100]
+    optimizers: all
+    grid_search: True
+
+
+  result:
+    model: /tmp/cf_experiments_loop/model/
+    log: /tmp/cf_experiments_loop/log/
+    results_csv: results.csv
+    clear: true

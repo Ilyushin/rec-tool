@@ -1,6 +1,7 @@
 import shutil
 from time import time
 import tensorflow as tf
+import numpy as np
 import pandas as pd
 from signal_transformation import helpers
 from cf_experiments_loop.metrics import auc, recall, mse
@@ -50,8 +51,6 @@ def train_model(
         callbacks=[tensorboard_callback],
         verbose=1
     )
-
-    predictions = model.predict([test_data.user_id, test_data.item_id])
 
     helpers.create_dir(model_dir)
     model.save(model_dir, save_format='tf')

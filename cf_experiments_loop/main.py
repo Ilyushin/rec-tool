@@ -62,7 +62,6 @@ def main():
         log_dir = result_conf['log']
         results_csv = result_conf['results_csv']
         clear = result_conf['clear']
-        log_to_ml_flow = result_conf['log_to_ml_flow']
 
         # define optimizers
         if optimizers == 'all':
@@ -100,19 +99,18 @@ def main():
                             print(history_eval[-1])
 
                             # write to MLFlow
-                            if log_to_ml_flow:
-                                log_to_mlflow(project_name='Recommendation system results',
-                                              group_name=str(model),
-                                              params={'batch_size': batch_size,
-                                                      'epoch': epoch,
-                                                      'optimizer': str(optimizer),
-                                                      'run_time': time() - start},
-                                              metrics={'eval': history_eval[-1], 'time': time() - start},
-                                              tags={'dataset': 'movielens'},
-                                              artifacts=[model_dir])
+                            log_to_mlflow(project_name='Recommendation system results',
+                                          group_name=str(model),
+                                          params={'batch_size': batch_size,
+                                                  'epoch': epoch,
+                                                  'optimizer': str(optimizer),
+                                                  'run_time': time() - start},
+                                          metrics={'eval': history_eval[-1], 'time': time() - start},
+                                          tags={'dataset': 'movielens'},
+                                          artifacts=[model_dir])
 
-                                print('uploaded to MLFlow')
-                                print(history_eval[0])
+                            print('uploaded to MLFlow')
+                            print(history_eval[0])
 
                             # write to csv file
                             pd.DataFrame({
@@ -144,16 +142,15 @@ def main():
             )
 
             # write to MLFlow
-            if log_to_ml_flow:
-                log_to_mlflow(project_name='Recommendations',
-                              group_name=str(model_fn),
-                              params={'batch_size': batch_size,
-                                      'epoch': epoch,
-                                      'optimizer': 'Adam',
-                                      'run_time': time() - start},
-                              metrics={'metrics': history_eval[-1]},
-                              tags={'dataset': 'movielens'},
-                              artifacts=[model_dir, results_csv])
+            log_to_mlflow(project_name='Recommendations',
+                          group_name=str(model_fn),
+                          params={'batch_size': batch_size,
+                                  'epoch': epoch,
+                                  'optimizer': 'Adam',
+                                  'run_time': time() - start},
+                          metrics={'metrics': history_eval[-1]},
+                          tags={'dataset': 'movielens'},
+                          artifacts=[model_dir, results_csv])
 
             # write to csv file
             pd.DataFrame({
