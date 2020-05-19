@@ -161,10 +161,10 @@ def main():
             # write to csv file
             # write to csv file
             pd.DataFrame({
-                'model': model_fn.__name__,
-                'batch_size': batch_size,
-                'epoch': epoch,
-                'optimizer': 'Adam',
+                'model': [model_fn.__name__],
+                'batch_size': [batch_size],
+                'epoch': [epoch],
+                'optimizer': ['Adam'],
                 'results': [(metric.split('.')[-1],
                              history_eval[model_conf['metrics'].index(metric) + 1])
                             for metric in model_conf['metrics']]
