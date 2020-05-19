@@ -50,27 +50,21 @@ def main():
 
     if users_number and items_number:
         model_conf = config['config']['model']
-        model_fn = [fn(model) for model in model_conf['model']]
+        dataset_name = config['config']['data']['input_data']['movielens']['type']
+        model_fn = model_conf['model']
         loss_fn = fn(model_conf['loss'])
         metrics_fn = [fn(name) for name in model_conf['metrics']]
         batch_size = model_conf['batch_size']
         epoch = model_conf['epoch']
         grid_search = model_conf['grid_search']
-        optimizers = model_conf['optimizers']
         result_conf = config['config']['result']
         model_dir = result_conf['model']
         log_dir = result_conf['log']
         results_csv = result_conf['results_csv']
         clear = result_conf['clear']
+        log_to_ml_flow = result_conf['log_to_ml_flow']
 
-        # define optimizers
-        if optimizers == 'all':
-            opts = [tf.keras.optimizers.SGD(),
-                    tf.keras.optimizers.RMSprop(),
-                    tf.keras.optimizers.Adam()]
-
-        else:
-            opts = [tf.keras.optimizers.Adam()]
+        opts = [tf.keras.optimizers.Adam()]
 
         # Start grid search
         if grid_search and isinstance(batch_size, list) and isinstance(epoch, list):
@@ -86,7 +80,7 @@ def main():
                                 test_data=test_data,
                                 users_number=users_number,
                                 items_number=users_number,
-                                model_fn=model,
+                                model_fn=fn(model),
                                 loss_fn=loss_fn,
                                 metrics_fn=metrics_fn,
                                 model_dir=model_dir,
@@ -96,21 +90,25 @@ def main():
                                 epoch=e,
                                 optimizer=optimizer
                             )
-                            print(history_eval[-1])
 
-                            # write to MLFlow
-                            log_to_mlflow(project_name='Recommendation system results',
-                                          group_name=str(model),
-                                          params={'batch_size': batch_size,
-                                                  'epoch': epoch,
-                                                  'optimizer': str(optimizer),
-                                                  'run_time': time() - start},
-                                          metrics={'eval': history_eval[-1], 'time': time() - start},
-                                          tags={'dataset': 'movielens'},
-                                          artifacts=[model_dir])
+                            if log_to_ml_flow:
 
-                            print('uploaded to MLFlow')
-                            print(history_eval[0])
+                                # write to MLFlow
+                                log_to_mlflow(project_name='Recommendation system experiments',
+                                              group_name=model.__name__,
+                                              params={'batch_size': batch_size,
+                                                      'epoch': epoch,
+                                                      'optimizer': optimizer.__name__,
+                                                      'run_time': time() - start},
+                                              metrics={
+                                                  metric.split('.')[-1]:
+                                                      history_eval[model_conf['metrics'].index(metric) + 1]
+                                                  for metric in model_conf['metrics']
+                                              },
+                                              tags={'dataset': dataset_name},
+                                              artifacts=[model_dir])
+
+                                print('uploaded to MLFlow')
 
                             # write to csv file
                             pd.DataFrame({
@@ -118,8 +116,10 @@ def main():
                                 'batch_size': batch_size,
                                 'epoch': epoch,
                                 'optimizer': str(optimizer),
-                                'results': history_eval[0]
-                            }).to_csv('results.csv')
+                                'results':  [(metric.split('.')[-1],
+                                              history_eval[model_conf['metrics'].index(metric) + 1])
+                                             for metric in model_conf['metrics']]
+                            }).to_csv(results_csv)
 
         else:
 
@@ -141,24 +141,33 @@ def main():
                 optimizer=tf.keras.optimizers.Adam()
             )
 
-            # write to MLFlow
-            log_to_mlflow(project_name='Recommendations',
-                          group_name=str(model_fn),
-                          params={'batch_size': batch_size,
-                                  'epoch': epoch,
-                                  'optimizer': 'Adam',
-                                  'run_time': time() - start},
-                          metrics={'metrics': history_eval[-1]},
-                          tags={'dataset': 'movielens'},
-                          artifacts=[model_dir, results_csv])
+            if log_to_ml_flow:
+                
+                # write to MLFlow
+                log_to_mlflow(project_name='Recommendation system experiments',
+                              group_name=model_fn.__name__,
+                              params={'batch_size': batch_size,
+                                      'epoch': epoch,
+                                      'optimizer': 'Adam',
+                                      'run_time': time() - start},
+                              metrics={
+                                  metric.split('.')[-1]:
+                                      history_eval[model_conf['metrics'].index(metric) + 1]
+                                  for metric in model_conf['metrics']
+                              },
+                              tags={'dataset': dataset_name},
+                              artifacts=[model_dir])
 
             # write to csv file
+            # write to csv file
             pd.DataFrame({
-                'model': str(model_fn),
+                'model': model_fn.__name__,
                 'batch_size': batch_size,
                 'epoch': epoch,
                 'optimizer': 'Adam',
-                'results': history_eval[-1]
+                'results': [(metric.split('.')[-1],
+                             history_eval[model_conf['metrics'].index(metric) + 1])
+                            for metric in model_conf['metrics']]
             }).to_csv(results_csv)
 
 
