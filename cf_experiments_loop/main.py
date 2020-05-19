@@ -95,10 +95,10 @@ def main():
 
                                 # write to MLFlow
                                 log_to_mlflow(project_name='Recommendation system experiments',
-                                              group_name=model.__name__,
-                                              params={'batch_size': batch_size,
-                                                      'epoch': epoch,
-                                                      'optimizer': optimizer.__name__,
+                                              group_name=fn(model).__name__,
+                                              params={'batch_size': batch,
+                                                      'epoch': e,
+                                                      'optimizer': 'Adam',
                                                       'run_time': time() - start},
                                               metrics={
                                                   metric.split('.')[-1]:
@@ -112,10 +112,10 @@ def main():
 
                             # write to csv file
                             pd.DataFrame({
-                                'model': str(model),
-                                'batch_size': batch_size,
-                                'epoch': epoch,
-                                'optimizer': str(optimizer),
+                                'model': [fn(model).__name__],
+                                'batch_size': [batch],
+                                'epoch': [e],
+                                'optimizer': ['Adam'],
                                 'results':  [(metric.split('.')[-1],
                                               history_eval[model_conf['metrics'].index(metric) + 1])
                                              for metric in model_conf['metrics']]
@@ -142,7 +142,7 @@ def main():
             )
 
             if log_to_ml_flow:
-                
+
                 # write to MLFlow
                 log_to_mlflow(project_name='Recommendation system experiments',
                               group_name=model_fn.__name__,
