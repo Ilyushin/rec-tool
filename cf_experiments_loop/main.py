@@ -126,15 +126,14 @@ def main():
                             # write to csv file
                             if df_results.empty:
                                 df_results = pd.DataFrame(
-                                    get_result(model_conf['metrics'], history_eval, model_path, batch_size,
-                                               epoch, optimizer,
+                                    get_result(model_conf['metrics'], history_eval, model_path, batch,
+                                               e, optimizer,
                                                [input_data_conf['movielens']['type']], as_list=True)
                                 )
                             else:
                                 df_results = df_results.append(
-                                    get_result(model_conf['metrics'], history_eval, model_path, batch_size,
-                                               epoch, optimizer,
-                                               [input_data_conf['movielens']['type']]),
+                                    get_result(model_conf['metrics'], history_eval, model_path, batch,
+                                               e, optimizer, [input_data_conf['movielens']['type']]),
                                     ignore_index=True)
 
                             df_results.to_csv(results_csv)
