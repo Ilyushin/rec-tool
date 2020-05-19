@@ -78,12 +78,12 @@ def bpr(users_number: int, items_number: int):
     negative_item_input = tf.keras.layers.Input((1,), name='negative_item_input')
 
     # One embedding layer is shared between positive and negative items
-    item_embedding_layer = tf.keras.layers.Embedding(items_number, latent_dim, name='item_embedding', input_length=1)
+    item_embedding_layer = tf.keras.layers.Embedding(items_number + 1, latent_dim, name='item_embedding', input_length=1)
 
     positive_item_embedding = tf.keras.layers.Flatten()(item_embedding_layer(positive_item_input))
     negative_item_embedding = tf.keras.layers.Flatten()(item_embedding_layer(negative_item_input))
 
-    user_embedding = tf.keras.layers.Embedding(users_number, latent_dim, name='user_embedding', input_length=1)(user_input)
+    user_embedding = tf.keras.layers.Embedding(users_number + 1, latent_dim, name='user_embedding', input_length=1)(user_input)
     user_embedding = tf.keras.layers.Flatten()(user_embedding)
 
     triplet_loss = tf.keras.layers.Lambda(bpr_triplet_loss)([positive_item_embedding,

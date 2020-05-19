@@ -4,10 +4,12 @@ import urllib
 import zipfile
 import six
 import pandas as pd
+import numpy as np
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 from signal_transformation import helpers
 from cf_experiments_loop.models.bpr_model import bpr_preprocess_data
+from cf_experiments_loop.models.vae import vae_preprocess_data
 
 GENRE_COLUMN = "genres"
 ITEM_COLUMN = "item_id"  # movies
@@ -124,3 +126,14 @@ print(prepare_data(dataset_type='ml-1m',
                    clear=True,
                    movielens_path='/tmp/cf_experiments_loop/dataset/movielens'))
 
+
+# preprocessing for vaecf
+def vae_movielens(dataset_type=None,
+                  clear=False,
+                  movielens_path=None):
+
+    train_data, test_data, users_number, items_number = prepare_data(dataset_type=dataset_type,
+                                                                     clear=clear,
+                                                                     movielens_path=movielens_path)
+
+    return vae_preprocess_data(train_data), vae_preprocess_data(test_data), users_number, items_number

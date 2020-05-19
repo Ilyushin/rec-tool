@@ -1,6 +1,11 @@
 import shutil
+from time import time
 import tensorflow as tf
+import numpy as np
+import pandas as pd
 from signal_transformation import helpers
+from cf_experiments_loop.metrics import auc, recall, mse
+from cf_experiments_loop.ml_flow.ml_flow import log_to_mlflow
 
 
 def train_model(
@@ -11,11 +16,12 @@ def train_model(
         model_fn=None,
         loss_fn=None,
         metrics_fn=None,
-        batch_size=64,
-        epoch=10,
         model_dir=None,
         log_dir=None,
-        clear=False
+        clear=False,
+        optimizer=None,
+        batch_size=64,
+        epoch=10,
 ):
 
     if clear:
@@ -25,8 +31,6 @@ def train_model(
     model = model_fn(users_number=users_number, items_number=items_number)
     loss = loss_fn()
     metrics = [metric_fn() for metric_fn in metrics_fn]
-
-    optimizer = tf.keras.optimizers.Adam()
 
     model.compile(
         loss=loss,
@@ -57,4 +61,3 @@ def train_model(
     print('Eval loss:', history_eval[0])
 
     return history_train, history_eval
-

@@ -42,4 +42,6 @@ def get_goodreads_data(destination='goodreads.csv'):
 
     data = pd.read_csv(destination)
     os.remove(destination)
-    return data['user_id'], data['item_id'], data['rating']
+    return pd.DataFrame({'user_id': data['user_id'],
+                         'item_id': data['item_id'],
+                         'rating': data['rating']})

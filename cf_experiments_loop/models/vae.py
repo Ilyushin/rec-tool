@@ -1,8 +1,9 @@
 import tensorflow as tf
 import pandas as pd
+import numpy as np
 
 
-def vaesf_preprocess(users: list, items: list, ratings: list):
+def vaeсf_preprocess(users: list, items: list, ratings: list):
     """
     :param users: list of users
     :param items: list of items
@@ -19,6 +20,11 @@ def vaesf_preprocess(users: list, items: list, ratings: list):
 
 # Autoencoder
 def vaecf(users_number: int, items_number: int):
+    """
+    :param users_number:
+    :param items_number:
+    :return:
+    """
 
     input_layer = tf.keras.layers.Input(shape=(items_number,), name='UserScore')
 
@@ -35,3 +41,22 @@ def vaecf(users_number: int, items_number: int):
     model = tf.keras.models.Model(input_layer, output_layer)
 
     return model
+
+
+def vae_preprocess_data(data):
+    """
+    :param data: pd.DataFrame with columns ['user_id', 'item_id', 'rating']
+    :return:
+    """
+
+    unique_users = list(set(data.user_id))
+    unique_items = list(set(data.item_id))
+
+    vae_sparse_matrix = np.zeros((len(unique_users), len(unique_items)))
+
+    for i in range(len(data.user_id)):
+        row_index = unique_users.index(data.user_id[i])
+        col_index = unique_items.index(data.item_id[i])
+        vae_sparse_matrix[row_index, col_index] = data.rating
+
+    return vae_sparse_matrix

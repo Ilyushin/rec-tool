@@ -12,4 +12,4 @@ def behance_converting(file_path='Behance_appreciate_1M'):
         items.append(int(row_data[1]))
         rating.append(1)
 
-    return users, items, rating
+    return pd.DataFrame({'user_id': users, 'item_id': items, 'rating': rating})
