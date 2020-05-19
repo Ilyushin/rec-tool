@@ -56,7 +56,7 @@ def main():
         metrics_fn = [fn(name) for name in model_conf['metrics']]
         batch_size = model_conf['batch_size']
         epoch = model_conf['epoch']
-        learning_rate = model_conf['learning_rate']
+        # learning_rate = model_conf['learning_rate']
         grid_search = model_conf['grid_search']
         optimizers = model_conf['optimizers']
         result_conf = config['config']['result']
