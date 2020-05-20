@@ -49,10 +49,12 @@ def main():
         )
 
     if input_data_conf['goodreads']['use']:
-        train_data, test_data, users_number, items_number = fn(input_data_conf['goodreads']['transformations'])
+        goodreads_transform = fn(input_data_conf['goodreads']['transformations'])
+        train_data, test_data, users_number, items_number = goodreads_transform()
 
     if input_data_conf['bookcrossing']['use']:
-        train_data, test_data, users_number, items_number = fn(input_data_conf['bookcrossing']['transformations'])
+        bookcrossing_transform = fn(input_data_conf['bookcrossing']['transformations'])
+        train_data, test_data, users_number, items_number = bookcrossing_transform()
 
     if users_number and items_number:
         model_conf = config['config']['model']
