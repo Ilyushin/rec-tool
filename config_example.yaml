@@ -20,9 +20,11 @@ config:
       cf_experiments_loop.metrics.rmse,
       cf_experiments_loop.metrics.mae
     ]
-    batch_size: [128, 256]
+    batch_size: [512, 1024, 2048]
     epoch: [20, 30]
     optimizers: all
+    learning_rate: 0.01
+    use_learning_rate_schedule: True
     grid_search: True
 
 
