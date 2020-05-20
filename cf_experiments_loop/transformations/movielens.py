@@ -11,6 +11,9 @@ from signal_transformation import helpers
 from cf_experiments_loop.models.bpr_model import bpr_preprocess_data
 from cf_experiments_loop.models.vae import vae_preprocess_data
 
+ML_1M = "ml-1m"
+ML_20M = "ml-20m"
+
 GENRE_COLUMN = "genres"
 ITEM_COLUMN = "item_id"  # movies
 RATING_COLUMN = "rating"
@@ -58,39 +61,65 @@ def prepare_data(
         clear=False,
         movielens_path=None
 ):
+    raitings_file = "ratings.csv"
+    movies_file = "movies.csv"
+    working_dir = os.path.join(movielens_path, dataset_type)
+    raitings_file_path = os.path.join(movielens_path, raitings_file)
+    movies_file_path = os.path.join(movielens_path, movies_file)
+
     if clear:
-        shutil.rmtree(movielens_path, ignore_errors=True)
+        shutil.rmtree(raitings_file_path, ignore_errors=True)
+        shutil.rmtree(movies_file_path, ignore_errors=True)
+        shutil.rmtree(working_dir, ignore_errors=True)
 
     helpers.create_dir(movielens_path)
 
     data_url = "http://files.grouplens.org/datasets/movielens/"
-    raitings_file = "ratings.csv"
-    movies_file = "movies.csv"
     url = "{}{}.zip".format(data_url, dataset_type)
 
     zip_path = os.path.join(movielens_path, "{}.zip".format(dataset_type))
-    zip_path, _ = urllib.request.urlretrieve(url, zip_path)
+
+    if not os.path.exists(zip_path):
+        zip_path, _ = urllib.request.urlretrieve(url, zip_path)
 
     zipfile.ZipFile(zip_path, "r").extractall(movielens_path)
 
-    os.remove(zip_path)
+    # os.remove(zip_path)
 
-    working_dir = os.path.join(movielens_path, dataset_type)
 
-    _transform_csv(
-        input_path=os.path.join(working_dir, "ratings.dat"),
-        output_path=os.path.join(working_dir, raitings_file),
-        names=RATING_COLUMNS, skip_first=False, separator="::"
-    )
+    if dataset_type == ML_1M:
+        _transform_csv(
+            input_path=os.path.join(working_dir, "ratings.dat"),
+            output_path=os.path.join(movielens_path, raitings_file),
+            names=RATING_COLUMNS, skip_first=False, separator="::"
+        )
 
-    _transform_csv(
-        input_path=os.path.join(working_dir, "movies.dat"),
-        output_path=os.path.join(working_dir, movies_file),
-        names=MOVIE_COLUMNS, skip_first=False, separator="::"
-    )
+        _transform_csv(
+            input_path=os.path.join(working_dir, "movies.dat"),
+            output_path=os.path.join(movielens_path, movies_file),
+            names=MOVIE_COLUMNS, skip_first=False, separator="::"
+        )
+    else:
+        _transform_csv(
+            input_path=os.path.join(working_dir, "ratings.csv"),
+            output_path=os.path.join(movielens_path, raitings_file),
+            names=RATING_COLUMNS, skip_first=False, separator=","
+        )
 
-    shutil.copyfile(os.path.join(working_dir, raitings_file), os.path.join(movielens_path, raitings_file))
-    shutil.copyfile(os.path.join(working_dir, movies_file), os.path.join(movielens_path, movies_file))
+        _transform_csv(
+            input_path=os.path.join(working_dir, "movies.csv"),
+            output_path=os.path.join(movielens_path, movies_file),
+            names=MOVIE_COLUMNS, skip_first=False, separator=","
+        )
+
+    # shutil.copyfile(
+    #     os.path.join(working_dir, raitings_file),
+    #     os.path.join(movielens_path, raitings_file)
+    # )
+    # shutil.copyfile(
+    #     os.path.join(working_dir, movies_file),
+    #     os.path.join(movielens_path, movies_file)
+    # )
     tf.io.gfile.rmtree(working_dir)
 
     dataset = pd.read_csv(os.path.join(movielens_path, raitings_file))
@@ -122,18 +151,18 @@ def bpr_movielens(dataset_type=None,
     return train_data, test_data, users_number, items_number
 
 
-print(prepare_data(dataset_type='ml-1m',
-                   clear=True,
-                   movielens_path='/tmp/cf_experiments_loop/dataset/movielens'))
+# print(prepare_data(dataset_type='ml-1m',
+#                    clear=True,
+#                    movielens_path='/tmp/cf_experiments_loop/dataset/movielens'))
 
 
 # preprocessing for vaecf
 def vae_movielens(dataset_type=None,
                   clear=False,
                   movielens_path=None):
-
     train_data, test_data, users_number, items_number = prepare_data(dataset_type=dataset_type,
                                                                      clear=clear,
                                                                      movielens_path=movielens_path)
 
-    return vae_preprocess_data(train_data), vae_preprocess_data(test_data), users_number, items_number
+    return vae_preprocess_data(train_data), vae_preprocess_data(
+        test_data), users_number, items_number
