@@ -15,12 +15,13 @@ def download_bookcrossing(url='http://www2.informatik.uni-freiburg.de/~cziegler/
     os.remove(zip_path)
 
 
-def bookcrossing_converting(file_path='bookcrossing/BX-Book-Ratings.csv'):
+def bookcrossing_converting():
     """
-    :param file_path:
     :return: users, items, ratings
     """
-    train_data = pd.read_csv(file_path, delimiter=';', encoding='latin1')
+
+    download_bookcrossing()
+    train_data = pd.read_csv('bookcrossing/BX-Book-Ratings.csv', delimiter=';', encoding='latin1')
 
     curusers = list(set(train_data["User-ID"]))
     users_uuid_int_dict = dict(zip(curusers, range(len(curusers))))
