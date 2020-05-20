@@ -41,16 +41,22 @@ def main():
 
     input_data_conf = config['config']['data']['input_data']
     if input_data_conf['movielens']['use']:
-        transformations_fn = fn(input_data_conf['transformations'])
+        transformations_fn = fn(input_data_conf['movielens']['transformations'])
         train_data, test_data, users_number, items_number = transformations_fn(
             dataset_type=input_data_conf['movielens']['type'],
             clear=input_data_conf['clear'],
             movielens_path=input_data_conf['movielens']['path']
         )
 
+    if input_data_conf['goodreads']['use']:
+        train_data, test_data, users_number, items_number = fn(input_data_conf['goodreads']['transformations'])
+
+    if input_data_conf['bookcrossing']['use']:
+        train_data, test_data, users_number, items_number = fn(input_data_conf['bookcrossing']['transformations'])
+
     if users_number and items_number:
         model_conf = config['config']['model']
-        dataset_name = config['config']['data']['input_data']['movielens']['type']
+        dataset_name = config['config']['data']['input_data']['bookcrossing']['type']
         model_fn = model_conf['model']
         loss_fn = fn(model_conf['loss'])
         metrics_fn = [fn(name) for name in model_conf['metrics']]

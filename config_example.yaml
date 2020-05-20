@@ -4,9 +4,21 @@ config:
       clear: true
       movielens:
         use: true
-        type: ml-1m
+        type: ml-20m
         path: /tmp/cf_experiments_loop/dataset/movielens
-      transformations: cf_experiments_loop.transformations.movielens.prepare_data
+        transformations: cf_experiments_loop.transformations.movielens.prepare_data
+      goodreads:
+        use: false
+        type: goodreads
+        transformations: cf_experiments_loop.transformations.goodreads.get_goodreads_data
+      bookcrossing:
+        use: false
+        type: bookcrossing
+        transformations: cf_experiments_loop.transformations.bookcrossing.bookcrossing_converting
+      behance:
+        use: false
+        type: behance
+        transformation: cf_experiments_loop.transformations.behance.behance_converting
   model:
     model: [
       cf_experiments_loop.models.embedding.embedding_model,
@@ -22,7 +34,7 @@ config:
     ]
     batch_size: [128, 256]
     epoch: [20, 30]
-    optimizers: all
+    optimizers: adam
     grid_search: True
 
 
