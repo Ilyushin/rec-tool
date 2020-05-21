@@ -43,3 +43,4 @@ def bookcrossing_converting():
     return train, test, len(np.unique(data.user_id)), len(np.unique(data.item_id))
 
 
+print(bookcrossing_converting())

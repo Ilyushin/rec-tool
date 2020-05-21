@@ -4,7 +4,7 @@ config:
       clear: true
       movielens:
         use: true
-        type: ml-20m
+        type: ml-1m
         path: /tmp/cf_experiments_loop/dataset/movielens
         transformations: cf_experiments_loop.transformations.movielens.prepare_data
       goodreads:
@@ -26,13 +26,13 @@ config:
       cf_experiments_loop.models.mf.mf,
       cf_experiments_loop.models.svd.svd,
     ]
-    loss: cf_experiments_loop.losses.mean_squared_error
+    loss: cf_experiments_loop.losses.sparse_categorical_crossentropy
     metrics: [
       cf_experiments_loop.metrics.accuracy,
       cf_experiments_loop.metrics.rmse,
       cf_experiments_loop.metrics.mae
     ]
-    batch_size: [128, 256]
+    batch_size: [512, 1024]
     epoch: [20, 30]
     optimizers: adam
     grid_search: True

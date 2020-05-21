@@ -27,7 +27,7 @@ def ncf_model(users_number, items_number,
 
     embedding_user = tf.keras.layers.Embedding(
         input_dim=users_number + 1,
-        output_dim=int(layers[0] / 2),
+        output_dim=int(model_layers[0] / 2),
         name='user_embedding',
         embeddings_initializer=embedding_initializer,
         embeddings_regularizer=tf.keras.regularizers.l2(),
@@ -35,7 +35,7 @@ def ncf_model(users_number, items_number,
     )(user_input)
     embedding_item = tf.keras.layers.Embedding(
         input_dim=items_number + 1,
-        output_dim=int(layers[0] / 2),
+        output_dim=int(model_layers[0] / 2),
         name='item_embedding',
         embeddings_initializer=embedding_initializer,
         embeddings_regularizer=tf.keras.regularizers.l2(),
