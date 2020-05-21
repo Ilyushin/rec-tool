@@ -16,6 +16,9 @@ def embedding_model(users_number=None, items_number=None):
 
     # performing dot product and creating model
     prod = tf.keras.layers.Dot(name="dot_product", axes=1)([items_vec, users_vec])
+    prod = tf.keras.layers.Dropout(0.5)(prod)
+    prod = tf.keras.layers.Flatten()(prod)
+    prod = tf.keras.layers.Dense(1)(prod)
     model = tf.keras.Model([users_input, items_input], prod)
 
     return model
