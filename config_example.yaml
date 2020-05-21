@@ -26,7 +26,7 @@ config:
       cf_experiments_loop.models.mf.mf,
       cf_experiments_loop.models.svd.svd,
     ]
-    loss: cf_experiments_loop.losses.sparse_categorical_crossentropy
+    loss: cf_experiments_loop.losses.mean_squared_error
     metrics: [
       cf_experiments_loop.metrics.accuracy,
       cf_experiments_loop.metrics.rmse,
