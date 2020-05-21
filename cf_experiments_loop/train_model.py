@@ -35,7 +35,7 @@ def train_model(
 
     model.compile(
         loss=loss,
-        optimizer=optimizer,
+        optimizer=optimizer(learning_rate),
         metrics=metrics
     )
 
