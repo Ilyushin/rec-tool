@@ -20,10 +20,10 @@ config:
       cf_experiments_loop.metrics.rmse,
       cf_experiments_loop.metrics.mae
     ]
-    batch_size: [512, 1024, 2048]
-    epoch: [20, 30]
+    batch_size: [1024, 2048, 5096]
+    epoch: [60, 80, 100]
     optimizers: all
-    learning_rate: 0.01
+    learning_rate: 0.001
     use_learning_rate_schedule: True
     grid_search: True
 
@@ -32,5 +32,5 @@ config:
     model: /tmp/cf_experiments_loop/model/
     log: /tmp/cf_experiments_loop/log/
     results_csv: run_results.csv
-    log_to_ml_flow: True
+    log_to_ml_flow: False
     clear: true

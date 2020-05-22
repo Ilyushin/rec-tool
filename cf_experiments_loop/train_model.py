@@ -56,8 +56,8 @@ def train_model(
 
     # TODO: Fit for bpr and vae models with preprocessing
     history_train = model.fit(
-        [train_data.user_id, train_data.item_id],
-        train_data.rating,
+        [train_data.user_id.to_numpy(dtype=np.int), train_data.item_id.to_numpy(dtype=np.int)],
+        train_data.rating.to_numpy(),
         batch_size=batch_size,
         epochs=epoch,
         callbacks=callbacks,
