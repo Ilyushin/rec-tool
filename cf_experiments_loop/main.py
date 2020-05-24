@@ -58,13 +58,13 @@ def main():
 
     if users_number and items_number:
         model_conf = config['config']['model']
-        dataset_name = config['config']['data']['input_data']['bookcrossing']['type']
+        dataset_name = config['config']['data']['input_data']['movielens']['type']
         model_fn = model_conf['model']
         loss_fn = fn(model_conf['loss'])
         metrics_fn = [fn(name) for name in model_conf['metrics']]
         batch_size = model_conf['batch_size']
         epoch = model_conf['epoch']
-        # learning_rate = model_conf['learning_rate']
+        learning_rate = model_conf['learning_rate']
         grid_search = model_conf['grid_search']
         optimizers = model_conf['optimizers']
         result_conf = config['config']['result']
@@ -114,6 +114,7 @@ def main():
                             print('history_eval:', history_eval)
 
                             if log_to_ml_flow:
+
                                 # write to MLFlow
                                 log_to_mlflow(project_name='Recommendation system experiments',
                                               group_name=fn(model_path).__name__,

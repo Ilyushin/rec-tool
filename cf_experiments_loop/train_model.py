@@ -33,8 +33,8 @@ def train_model(
     metrics = [metric_fn() for metric_fn in metrics_fn]
 
     model.compile(
-        loss=loss,
-        optimizer=optimizer,
+        loss='mean_squared_error',
+        optimizer=tf.keras.optimizers.Adam(),
         metrics=metrics
     )
 
