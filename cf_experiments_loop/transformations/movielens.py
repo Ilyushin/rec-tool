@@ -11,6 +11,9 @@ from signal_transformation import helpers
 from cf_experiments_loop.models.bpr_model import bpr_preprocess_data
 from cf_experiments_loop.models.vae import vae_preprocess_data
 
+ML_1M = "ml-1m"
+ML_20M = "ml-20m"
+
 GENRE_COLUMN = "genres"
 ITEM_COLUMN = "item_id"  # movies
 RATING_COLUMN = "rating"
@@ -32,8 +35,10 @@ def _transform_csv(input_path, output_path, names, skip_first, separator=","):
       skip_first: Boolean of whether to skip the first line of the raw csv.
       separator: Character used to separate fields in the raw csv.
     """
+    print(six.PY2)
     if six.PY2:
         names = [six.ensure_text(n, "utf-8") for n in names]
+    print(names)
 
     with tf.io.gfile.GFile(output_path, "wb") as f_out, \
             tf.io.gfile.GFile(input_path, "rb") as f_in:
@@ -42,6 +47,8 @@ def _transform_csv(input_path, output_path, names, skip_first, separator=","):
         f_out.write(",".join(names).encode("utf-8"))
         f_out.write(b"\n")
         for i, line in enumerate(f_in):
+            print(i)
+            print(line)
             if i == 0 and skip_first:
                 continue  # ignore existing labels in the csv
 
@@ -72,28 +79,34 @@ def prepare_data(
     zip_path, _ = urllib.request.urlretrieve(url, zip_path)
 
     zipfile.ZipFile(zip_path, "r").extractall(movielens_path)
-
     os.remove(zip_path)
 
     working_dir = os.path.join(movielens_path, dataset_type)
 
-    _transform_csv(
-        input_path=os.path.join(working_dir, "ratings.dat"),
-        output_path=os.path.join(working_dir, raitings_file),
-        names=RATING_COLUMNS, skip_first=False, separator="::"
-    )
+    if dataset_type == ML_1M:
 
-    _transform_csv(
-        input_path=os.path.join(working_dir, "movies.dat"),
-        output_path=os.path.join(working_dir, movies_file),
-        names=MOVIE_COLUMNS, skip_first=False, separator="::"
-    )
+        _transform_csv(
+            input_path=os.path.join(working_dir, "ratings.csv"),
+            output_path=os.path.join(working_dir, raitings_file),
+            names=RATING_COLUMNS, skip_first=False, separator="::"
+        )
 
-    shutil.copyfile(os.path.join(working_dir, raitings_file), os.path.join(movielens_path, raitings_file))
-    shutil.copyfile(os.path.join(working_dir, movies_file), os.path.join(movielens_path, movies_file))
-    tf.io.gfile.rmtree(working_dir)
+        _transform_csv(
+            input_path=os.path.join(working_dir, "movies.csv"),
+            output_path=os.path.join(working_dir, movies_file),
+            names=MOVIE_COLUMNS, skip_first=False, separator="::"
+        )
 
-    dataset = pd.read_csv(os.path.join(movielens_path, raitings_file))
+        shutil.copyfile(os.path.join(working_dir, raitings_file), os.path.join(movielens_path, raitings_file))
+        shutil.copyfile(os.path.join(working_dir, movies_file), os.path.join(movielens_path, movies_file))
+        tf.io.gfile.rmtree(working_dir)
+
+        dataset = pd.read_csv(os.path.join(movielens_path, raitings_file))
+
+    else:
+        dataset = pd.read_csv(os.path.join(working_dir, raitings_file))
+        dataset.columns = RATING_COLUMNS
+
     users_number = len(dataset.user_id.unique())
     items_number = len(dataset.item_id.unique())
 
@@ -120,11 +133,6 @@ def bpr_movielens(dataset_type=None,
                                     rating_threshold=3)
 
     return train_data, test_data, users_number, items_number
-
-
-print(prepare_data(dataset_type='ml-1m',
-                   clear=True,
-                   movielens_path='/tmp/cf_experiments_loop/dataset/movielens'))
 
 
 # preprocessing for vaecf
