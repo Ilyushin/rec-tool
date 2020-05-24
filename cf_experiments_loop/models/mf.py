@@ -27,8 +27,8 @@ def mf(users_number: int, items_number: int):
     x = tf.keras.layers.Activation('relu')(x)
     x = tf.keras.layers.Dropout(0.5)(x)
 
-    x = tf.keras.layers.Dense(1, kernel_initializer='he_normal')(x)
-    x = tf.keras.layers.Activation('relu')(x)
+    x = tf.keras.layers.Dense(1, activation='sigmoid', kernel_initializer='he_normal')(x)
+    # x = tf.keras.layers.Activation('sigmoid')(x)
     x = tf.keras.layers.Lambda(lambda x: x * (max_rating - min_rating) + min_rating)(x)
 
     model = tf.keras.models.Model(inputs=[user_id_input, item_id_input], outputs=x)

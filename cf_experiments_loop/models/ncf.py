@@ -78,7 +78,7 @@ def ncf_model(users_number, items_number,
     # Final prediction layer
     logits = tf.keras.layers.Dense(
         1,
-        activation='relu',
+        activation='sigmoid',
         kernel_initializer='lecun_uniform',
         name=rating_column
     )(predict_vector)

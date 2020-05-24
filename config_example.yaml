@@ -21,8 +21,6 @@ config:
         transformation: cf_experiments_loop.transformations.behance.behance_converting
   model:
     model: [
-      cf_experiments_loop.models.embedding.embedding_model,
-      cf_experiments_loop.models.mlp.mlp,
       cf_experiments_loop.models.ncf.ncf_model,
       cf_experiments_loop.models.mf.mf,
       cf_experiments_loop.models.svd.svd,

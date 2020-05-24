@@ -33,7 +33,7 @@ def train_model(
     metrics = [metric_fn() for metric_fn in metrics_fn]
 
     model.compile(
-        loss='mean_squared_error',
+        loss='categorical_crossentropy',
         optimizer=tf.keras.optimizers.Adam(),
         metrics=metrics
     )

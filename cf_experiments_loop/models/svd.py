@@ -33,7 +33,7 @@ def svd(users_number: int, items_number: int):
     # add tf.keras.backend.constant(np.mean(targets), shape=[])
     y_hat = tf.keras.layers.Add()([y_hat, user_bias, item_bias])
 
-    x = tf.keras.layers.Activation('relu')(y_hat)
+    x = tf.keras.layers.Activation('sigmoid')(y_hat)
     x = tf.keras.layers.Lambda(lambda x: x * (max_rating - min_rating) + min_rating)(x)
 
     model = tf.keras.models.Model(inputs=[user_id_input, item_id_input], outputs=x)
