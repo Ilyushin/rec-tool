@@ -6,7 +6,7 @@ import pandas as pd
 from time import time
 import tensorflow as tf
 from cf_experiments_loop.common import fn
-from cf_experiments_loop.train_model import train_model
+from cf_experiments_loop.train_model import train_model, train_svd
 from cf_experiments_loop.ml_flow.ml_flow import log_to_mlflow
 
 
@@ -95,22 +95,38 @@ def main():
                         for optimizer in opts:
 
                             start = time()
-
-                            history_train, history_eval = train_model(
-                                train_data=train_data,
-                                test_data=test_data,
-                                users_number=users_number,
-                                items_number=users_number,
-                                model_fn=fn(model_path),
-                                loss_fn=loss_fn,
-                                metrics_fn=metrics_fn,
-                                model_dir=model_dir,
-                                log_dir=log_dir,
-                                clear=clear,
-                                batch_size=batch,
-                                epoch=e,
-                                optimizer=optimizer()
-                            )
+                            if model_path == 'cf_experiments_loop.models.svdpp.svdpp':
+                                history_train, history_eval = train_svd(
+                                    train_data=train_data,
+                                    test_data=test_data,
+                                    users_number=users_number,
+                                    items_number=users_number,
+                                    model_fn=fn(model_path),
+                                    loss_fn=loss_fn,
+                                    metrics_fn=metrics_fn,
+                                    model_dir=model_dir,
+                                    log_dir=log_dir,
+                                    clear=clear,
+                                    batch_size=batch,
+                                    epoch=e,
+                                    optimizer=optimizer()
+                                )
+                            else:
+                                history_train, history_eval = train_model(
+                                    train_data=train_data,
+                                    test_data=test_data,
+                                    users_number=users_number,
+                                    items_number=users_number,
+                                    model_fn=fn(model_path),
+                                    loss_fn=loss_fn,
+                                    metrics_fn=metrics_fn,
+                                    model_dir=model_dir,
+                                    log_dir=log_dir,
+                                    clear=clear,
+                                    batch_size=batch,
+                                    epoch=e,
+                                    optimizer=optimizer()
+                                )
                             print('history_eval:', history_eval)
 
                             if log_to_ml_flow:

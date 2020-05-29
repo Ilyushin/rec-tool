@@ -83,7 +83,7 @@ def prepare_data(
 
     working_dir = os.path.join(movielens_path, dataset_type)
 
-    if dataset_type == ML_1M:
+    if dataset_type == 'ml-1m':
 
         _transform_csv(
             input_path=os.path.join(working_dir, "ratings.csv"),
@@ -133,6 +133,11 @@ def bpr_movielens(dataset_type=None,
                                     rating_threshold=3)
 
     return train_data, test_data, users_number, items_number
+
+
+print(prepare_data(dataset_type='ml-1m',
+                   clear=True,
+                   movielens_path='movielens'))
 
 
 # preprocessing for vaecf

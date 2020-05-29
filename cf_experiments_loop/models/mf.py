@@ -27,7 +27,7 @@ def mf(users_number: int, items_number: int):
     x = tf.keras.layers.Activation('relu')(x)
     x = tf.keras.layers.Dropout(0.5)(x)
 
-    x = tf.keras.layers.Dense(1, activation='sigmoid', kernel_initializer='he_normal')(x)
+    x = tf.keras.layers.Dense(1, activation='relu', kernel_initializer='he_normal')(x)
     # x = tf.keras.layers.Activation('sigmoid')(x)
     x = tf.keras.layers.Lambda(lambda x: x * (max_rating - min_rating) + min_rating)(x)
 

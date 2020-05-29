@@ -4,6 +4,7 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 from signal_transformation import helpers
+from cf_experiments_loop.models.config import Config
 from cf_experiments_loop.metrics import auc, recall, mse
 from cf_experiments_loop.ml_flow.ml_flow import log_to_mlflow
 
@@ -33,7 +34,7 @@ def train_model(
     metrics = [metric_fn() for metric_fn in metrics_fn]
 
     model.compile(
-        loss='categorical_crossentropy',
+        loss='mean_squared_error',
         optimizer=tf.keras.optimizers.Adam(),
         metrics=metrics
     )
@@ -61,3 +62,47 @@ def train_model(
     print('Eval loss:', history_eval[0])
 
     return history_train, history_eval
+
+
+def train_svd(
+        train_data=None,
+        test_data=None,
+        users_number=None,
+        items_number=None,
+        model_fn=None,
+        loss_fn=None,
+        metrics_fn=None,
+        model_dir=None,
+        log_dir=None,
+        clear=False,
+        optimizer=None,
+        batch_size=64,
+        epoch=10):
+
+    config = Config()
+    config.num_users = users_number
+    config.num_items = items_number
+    config.min_value = np.min(train_data.rating)
+    config.max_value = np.max(train_data.rating)
+
+    with tf.compat.v1.Session() as sess:
+
+        # For SVD++ algorithm, if `dual` is True, then the dual term of items'
+        # implicit feedback will be added into the original SVD++ algorithm.
+        model = model_fn(config, sess, dual=False)
+        model.train([train_data.user_id, train_data.item_id], train_data.rating,
+                    validation_data=([test_data.user_id, test_data.item_id], test_data.rating),
+                    epochs=epoch,
+                    batch_size=batch_size)
+
+        # save model
+        model = model.save_model(model_dir)
+
+        # evaluate with metrics
+        metrics = [metric_fn() for metric_fn in metrics_fn]
+        y_pred = model.predict([test_data.user_id, test_data.item_id])
+
+        # collect metrics
+        history_eval = [metric(test_data.rating, y_pred) for metric in metrics]
+
+    return _, history_eval
