@@ -19,6 +19,14 @@ config:
         use: false
         type: behance
         transformation: cf_experiments_loop.transformations.behance.behance_converting
+      user_item_data:
+        use: false
+        end_date: 01-05-2020
+        period: 2
+        data_path: ./data
+        users_number: 100
+        transformation: cf_experiments_loop.transformations.user_time_data.user_item_transform
+
   model:
     model: [
       cf_experiments_loop.models.ncf.ncf_model,
