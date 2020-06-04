@@ -4,11 +4,8 @@ import numpy as np
 from sklearn.preprocessing import LabelBinarizer
 
 
-def mse(y, y_pred):
-    """Returns the mean squared error between
-    ground truths and predictions.
-    """
-    return np.mean((y - y_pred) ** 2)
+def mse():
+    return tf.keras.metrics.MeanSquaredError()
 
 
 def accuracy():

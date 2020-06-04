@@ -141,6 +141,13 @@ def main():
 
                             if log_to_ml_flow:
 
+                                if history_eval is list:
+                                    metrics = {metric.split('.')[-1]:
+                                               history_eval[model_conf['metrics'].index(metric) + 1]
+                                               for metric in model_conf['metrics']}
+                                else:
+                                    metrics = history_eval
+
                                 # write to MLFlow
                                 log_to_mlflow(project_name='Recommendation system experiments',
                                               group_name=fn(model_path).__name__,
@@ -148,11 +155,7 @@ def main():
                                                       'epoch': e,
                                                       'optimizer': 'Adam',
                                                       'run_time': time() - start},
-                                              metrics={
-                                                  metric.split('.')[-1]:
-                                                      history_eval[model_conf['metrics'].index(metric) + 1]
-                                                  for metric in model_conf['metrics']
-                                              },
+                                              metrics=metrics,
                                               tags={'dataset': dataset_name},
                                               artifacts=[model_dir])
 

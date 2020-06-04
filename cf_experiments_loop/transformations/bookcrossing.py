@@ -41,6 +41,3 @@ def bookcrossing_converting():
 
     train, test = train_test_split(data, test_size=0.2)
     return train, test, len(np.unique(data.user_id)), len(np.unique(data.item_id))
-
-
-print(bookcrossing_converting())

@@ -29,6 +29,7 @@ config:
 
   model:
     model: [
+      cf_experiments_loop.models.svdpp.svdpp,
       cf_experiments_loop.models.ncf.ncf_model,
       cf_experiments_loop.models.mf.mf,
       cf_experiments_loop.models.svd.svd,

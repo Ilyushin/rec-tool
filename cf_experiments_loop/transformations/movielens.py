@@ -97,20 +97,10 @@ def prepare_data(
             names=MOVIE_COLUMNS, skip_first=False, separator="::"
         )
 
-        shutil.copyfile(
-            os.path.join(working_dir, raitings_file),
-            os.path.join(movielens_path, raitings_file)
-        )
-        shutil.copyfile(
-            os.path.join(working_dir, movies_file),
-            os.path.join(movielens_path, movies_file)
-        )
-        tf.io.gfile.rmtree(working_dir)
-
         dataset = pd.read_csv(os.path.join(movielens_path, raitings_file))
-
+        shutil.rmtree(movielens_path)
     else:
-        dataset = pd.read_csv(os.path.join(working_dir, raitings_file))
+        dataset = pd.read_csv(os.path.join(movielens_path, raitings_file))
         dataset.columns = RATING_COLUMNS
 
     users_number = len(dataset.user_id.unique())
@@ -139,11 +129,6 @@ def bpr_movielens(dataset_type=None,
                                     rating_threshold=3)
 
     return train_data, test_data, users_number, items_number
-
-
-print(prepare_data(dataset_type=ML_1M,
-                   clear=True,
-                   movielens_path='/tmp/cf_experiments_loop/dataset/movielens'))
 
 
 # preprocessing for vaecf

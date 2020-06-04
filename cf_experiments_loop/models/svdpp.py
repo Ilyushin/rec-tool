@@ -3,13 +3,33 @@ import tensorflow as tff
 import tensorflow.compat.v1 as tf
 import os
 import inspect
-from ..metrics import mae, rmse
 from cf_experiments_loop.utils.data_utils import BatchGenerator
 
 try:
     from tensorflow.keras import utils
 except:
     from tensorflow.contrib.keras import utils
+
+
+def mse(y, y_pred):
+    """Returns the mean squared error between
+    ground truths and predictions.
+    """
+    return np.mean((y - y_pred) ** 2)
+
+
+def rmse(y, y_pred):
+    """Returns the root mean squared error between
+    ground truths and predictions.
+    """
+    return np.sqrt(mse(y, y_pred))
+
+
+def mae(y, y_pred):
+    """Returns mean absolute error between
+    ground truths and predictions.
+    """
+    return np.mean(np.fabs(y - y_pred))
 
 
 def _convert_to_sparse_format(x):
