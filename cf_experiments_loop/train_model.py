@@ -88,9 +88,9 @@ def train_svd(
         # implicit feedback will be added into the original SVD++ algorithm.
         model = model_fn(config, sess, dual=False)
         model.train(train_data[['user_id', 'item_id']].to_numpy(),
-                    np.reshape(train_data['rating'].to_numpy(), (-1, 1)),
+                    train_data['rating'].to_numpy(),
                     validation_data=(test_data[['user_id', 'item_id']].to_numpy(),
-                                     np.reshape(test_data['rating'].to_numpy(), (-1, 1))),
+                                     test_data['rating'].to_numpy()),
                     epochs=epoch,
                     batch_size=batch_size)
 
