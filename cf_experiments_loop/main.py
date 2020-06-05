@@ -66,9 +66,9 @@ def main():
         data_path = input_data_conf['user_item_data']['data_path']
         user_item_data = fn(input_data_conf['user_item_data']['transformations'])
         train_data, test_data, users_number, items_number = user_item_data(end_date,
-                                                                           period,
+                                                                           int(period),
                                                                            data_path,
-                                                                           input_data_conf['user_item_data']['users_number'])
+                                                                           int(input_data_conf['user_item_data']['users_number']))
 
     if users_number and items_number:
         model_conf = config['config']['model']

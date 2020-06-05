@@ -3,7 +3,7 @@ config:
     input_data:
       clear: true
       movielens:
-        use: true
+        use: false
         type: ml-1m
         path: /tmp/cf_experiments_loop/dataset/movielens
         transformations: cf_experiments_loop.transformations.movielens.prepare_data
@@ -12,7 +12,7 @@ config:
         type: goodreads
         transformations: cf_experiments_loop.transformations.goodreads.get_goodreads_data
       bookcrossing:
-        use: false
+        use: true
         type: bookcrossing
         transformations: cf_experiments_loop.transformations.bookcrossing.bookcrossing_converting
       behance:
