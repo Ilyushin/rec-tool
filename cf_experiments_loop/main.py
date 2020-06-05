@@ -56,6 +56,10 @@ def main():
         bookcrossing_transform = fn(input_data_conf['bookcrossing']['transformations'])
         train_data, test_data, users_number, items_number = bookcrossing_transform()
 
+    if input_data_conf['behance']['use']:
+        bookcrossing_transform = fn(input_data_conf['behance']['transformations'])
+        train_data, test_data, users_number, items_number = bookcrossing_transform()
+
     if input_data_conf['user_item_data']['use']:
         end_date = input_data_conf['user_item_data']['end_date']
         period = input_data_conf['user_item_data']['period']
