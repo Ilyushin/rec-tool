@@ -21,8 +21,10 @@ def parse_args():
 
     """
     parser = argparse.ArgumentParser(description='Model training tool.')
-    parser.add_argument('--config', dest='config', default='config_example.yaml', help='Configuration description file')
-    parser.add_argument('--eval-only', dest='eval_only', action='store_true', default=False, help='Run only evaluation')
+    parser.add_argument('--config', dest='config', default='config_example.yaml',
+                        help='Configuration description file')
+    parser.add_argument('--eval-only', dest='eval_only', action='store_true', default=False,
+                        help='Run only evaluation')
 
     return parser.parse_args()
 
@@ -69,6 +71,7 @@ def main():
         batch_size = model_conf['batch_size']
         epoch = model_conf['epoch']
         learning_rate = model_conf['learning_rate']
+        use_learning_rate_schedule = model_conf['use_learning_rate_schedule']
         grid_search = model_conf['grid_search']
         optimizers = model_conf['optimizers']
         result_conf = config['config']['result']
@@ -99,6 +102,7 @@ def main():
                         for optimizer in opts:
 
                             start = time()
+
                             if model_path == 'cf_experiments_loop.models.svdpp.svdpp':
                                 history_train, history_eval = train_svd(
                                     train_data=train_data,
@@ -131,6 +135,7 @@ def main():
                                     epoch=e,
                                     optimizer=optimizer()
                                 )
+
                             print('history_eval:', history_eval)
 
                             if log_to_ml_flow:
@@ -149,7 +154,9 @@ def main():
                                                       'epoch': e,
                                                       'optimizer': 'Adam',
                                                       'run_time': time() - start},
+
                                               metrics=metrics,
+
                                               tags={'dataset': dataset_name},
                                               artifacts=[model_dir])
 
@@ -158,14 +165,30 @@ def main():
                             # write to csv file
                             if df_results.empty:
                                 df_results = pd.DataFrame(
-                                    get_result(model_conf['metrics'], history_eval, model_path, batch,
-                                               e, optimizer,
-                                               input_data_conf['movielens']['type'], as_list=True)
+                                    get_result(
+                                        model_conf['metrics'],
+                                        history_eval,
+                                        model_path,
+                                        batch,
+                                        e,
+                                        optimizer,
+                                        input_data_conf['movielens']['type'],
+                                        (time() - start),
+                                        as_list=True
+                                    )
                                 )
                             else:
                                 df_results = df_results.append(
-                                    get_result(model_conf['metrics'], history_eval, model_path, batch,
-                                               e, optimizer, input_data_conf['movielens']['type']),
+                                    get_result(
+                                        model_conf['metrics'],
+                                        history_eval,
+                                        model_path,
+                                        batch,
+                                        e,
+                                        optimizer,
+                                        input_data_conf['movielens']['type'],
+                                        (time() - start)
+                                    ),
                                     ignore_index=True)
 
                             df_results.to_csv(results_csv)
@@ -190,12 +213,13 @@ def main():
                 clear=clear,
                 batch_size=batch_size,
                 epoch=epoch,
-                optimizer=optimizer()
+                optimizer=optimizer,
+                learning_rate=learning_rate,
+                use_learning_rate_schedule=use_learning_rate_schedule
             )
 
             # write to MLFlow
             if log_to_ml_flow:
-
                 # write to MLFlow
                 log_to_mlflow(project_name='Recommendation system experiments',
                               group_name=model_fn.__name__,
@@ -214,13 +238,30 @@ def main():
             # write to csv file
             if df_results.empty:
                 df_results = pd.DataFrame(
-                    get_result(model_conf['metrics'], history_eval, model_path, batch_size, epoch, optimizer,
-                               [input_data_conf['movielens']['type']], as_list=True)
+                    get_result(
+                        model_conf['metrics'],
+                        history_eval,
+                        model_path,
+                        batch_size,
+                        epoch,
+                        optimizer,
+                        [input_data_conf['movielens']['type']],
+                        (time() - start),
+                        as_list=True
+                    )
                 )
             else:
                 df_results = df_results.append(
-                    get_result(model_conf['metrics'], history_eval, model_path, batch_size, epoch, optimizer,
-                               [input_data_conf['movielens']['type']]),
+                    get_result(
+                        model_conf['metrics'],
+                        history_eval,
+                        model_path,
+                        batch_size,
+                        epoch,
+                        optimizer,
+                        [input_data_conf['movielens']['type']],
+                        (time() - start)
+                    ),
                     ignore_index=True)
 
             df_results.to_csv(results_csv)
@@ -228,7 +269,7 @@ def main():
 
 
 def get_result(metrics, history_eval, model_path, batch_size, epoch, optimizer, dataset_name,
-               as_list=False):
+               run_time, as_list=False):
     result_dict = {
         fn(metric).__name__: ([history_eval[index + 1]] if as_list else history_eval[index + 1]) for
         index, metric in enumerate(metrics)
@@ -239,6 +280,7 @@ def get_result(metrics, history_eval, model_path, batch_size, epoch, optimizer, 
     result_dict['epoch'] = [epoch] if as_list else epoch
     result_dict['optimizer'] = [optimizer.__name__] if as_list else optimizer.__name__
     result_dict['dataset'] = [dataset_name] if as_list else dataset_name
+    result_dict['run_time'] = [run_time] if as_list else run_time
 
     return result_dict
 

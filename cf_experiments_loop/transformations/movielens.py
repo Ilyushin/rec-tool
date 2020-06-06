@@ -24,20 +24,6 @@ RATING_COLUMNS = [USER_COLUMN, ITEM_COLUMN, RATING_COLUMN, TIMESTAMP_COLUMN]
 MOVIE_COLUMNS = [ITEM_COLUMN, TITLE_COLUMN, GENRE_COLUMN]
 
 
-ML_1M = "ml-1m"
-ML_20M = "ml-20m"
-
-GENRE_COLUMN = "genres"
-ITEM_COLUMN = "item_id"  # movies
-RATING_COLUMN = "rating"
-TIMESTAMP_COLUMN = "timestamp"
-TITLE_COLUMN = "titles"
-USER_COLUMN = "user_id"
-
-RATING_COLUMNS = [USER_COLUMN, ITEM_COLUMN, RATING_COLUMN, TIMESTAMP_COLUMN]
-MOVIE_COLUMNS = [ITEM_COLUMN, TITLE_COLUMN, GENRE_COLUMN]
-
-
 def prepare_data(
         dataset_type=None,
         clear=False,
@@ -63,12 +49,14 @@ def prepare_data(
 
     os.remove(zip_path)
 
-    try:
+    if dataset_type == ML_20M:
         dataset = pd.read_csv(ratings_file_path)
         dataset.columns = RATING_COLUMNS
-    except:
+    elif dataset_type == ML_1M:
         dataset = pd.read_csv(ratings_file_path_dat, sep='::')
         dataset.columns = RATING_COLUMNS
+    else:
+      raise NameError('Wrong name for the movielens dataset')
 
     curusers = list(set(dataset["user_id"]))
     users_uuid_int_dict = dict(zip(curusers, range(len(curusers))))
@@ -116,5 +104,5 @@ def vae_movielens(dataset_type=None,
                                                                      clear=clear,
                                                                      movielens_path=movielens_path)
 
-    return vae_preprocess_data(train_data), vae_preprocess_data(
-        test_data), users_number, items_number
+    return vae_preprocess_data(train_data), vae_preprocess_data(test_data), users_number, items_number
+

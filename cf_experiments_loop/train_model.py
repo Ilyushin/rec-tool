@@ -18,10 +18,11 @@ def train_model(
         log_dir=None,
         clear=False,
         optimizer=None,
+        learning_rate=0.001,
+        use_learning_rate_schedule=False,
         batch_size=64,
         epoch=10,
 ):
-
     if clear:
         shutil.rmtree(model_dir, ignore_errors=True)
         shutil.rmtree(log_dir, ignore_errors=True)
@@ -32,21 +33,32 @@ def train_model(
 
     model.compile(
         loss=loss,
-        optimizer=tf.keras.optimizers.Adam(),
+        optimizer=optimizer(learning_rate),
         metrics=metrics
     )
 
     model.summary()
 
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir)
+    reduce_lr_callback = tf.keras.callbacks.ReduceLROnPlateau(
+        monitor='val_loss',
+        factor=0.2,
+        patience=5,
+        min_lr=learning_rate,
+        mode='auto'
+    )
+
+    callbacks = [tensorboard_callback]
+    if use_learning_rate_schedule:
+        callbacks.append(reduce_lr_callback)
 
     # TODO: Fit for bpr and vae models with preprocessing
     history_train = model.fit(
-        [train_data.user_id, train_data.item_id],
-        train_data.rating,
+        [train_data.user_id.to_numpy(dtype=np.int), train_data.item_id.to_numpy(dtype=np.int)],
+        train_data.rating.to_numpy(),
         batch_size=batch_size,
         epochs=epoch,
-        callbacks=[tensorboard_callback],
+        callbacks=callbacks,
         verbose=1
     )
 
@@ -55,7 +67,7 @@ def train_model(
 
     history_eval = model.evaluate([test_data.user_id, test_data.item_id], test_data.rating)
 
-    print('Train loss:', history_train.history['loss'][len(history_train.history['loss'])-1])
+    print('Train loss:', history_train.history['loss'][len(history_train.history['loss']) - 1])
     print('Eval loss:', history_eval[0])
 
     return history_train, history_eval
