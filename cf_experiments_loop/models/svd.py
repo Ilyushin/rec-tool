@@ -5,7 +5,7 @@ import numpy as np
 # TODO: SVD ++, TimeSVD ++
 def svd(users_number: int, items_number: int):
 
-    latent_dim, max_rating, min_rating, regs = 100, 5, 1, [0, 0]
+    latent_dim, max_rating, min_rating, regs = 10, 5, 1, [0, 0]
 
     # define placeholder.
     user_id_input = tf.keras.layers.Input(shape=[1], name='user')
@@ -33,7 +33,7 @@ def svd(users_number: int, items_number: int):
     # add tf.keras.backend.constant(np.mean(targets), shape=[])
     y_hat = tf.keras.layers.Add()([y_hat, user_bias, item_bias])
 
-    x = tf.keras.layers.Activation('sigmoid')(y_hat)
+    x = tf.keras.layers.Activation('relu')(y_hat)
     x = tf.keras.layers.Lambda(lambda x: x * (max_rating - min_rating) + min_rating)(x)
 
     model = tf.keras.models.Model(inputs=[user_id_input, item_id_input], outputs=x)

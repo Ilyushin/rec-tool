@@ -5,6 +5,7 @@ import zipfile
 import os
 import shutil
 import numpy as np
+from sklearn.model_selection import train_test_split
 
 
 def download_bookcrossing(url='http://www2.informatik.uni-freiburg.de/~cziegler/BX/BX-CSV-Dump.zip',
@@ -14,12 +15,13 @@ def download_bookcrossing(url='http://www2.informatik.uni-freiburg.de/~cziegler/
     os.remove(zip_path)
 
 
-def bookcrossing_converting(file_path='bookcrossing/BX-Book-Ratings.csv'):
+def bookcrossing_converting():
     """
-    :param file_path:
     :return: users, items, ratings
     """
-    train_data = pd.read_csv(file_path, delimiter=';', encoding='latin1')
+
+    download_bookcrossing()
+    train_data = pd.read_csv('bookcrossing/BX-Book-Ratings.csv', delimiter=';', encoding='latin1')
 
     curusers = list(set(train_data["User-ID"]))
     users_uuid_int_dict = dict(zip(curusers, range(len(curusers))))
@@ -33,8 +35,9 @@ def bookcrossing_converting(file_path='bookcrossing/BX-Book-Ratings.csv'):
     shutil.rmtree('bookcrossing')
     print(train_data)
 
-    return pd.DataFrame({'user_id': train_data["User-ID"],
+    data = pd.DataFrame({'user_id': train_data["User-ID"],
                          'item_id': train_data["ISBN"],
                          'rating': train_data["Book-Rating"]})
 
-
+    train, test = train_test_split(data, test_size=0.2)
+    return train, test, len(np.unique(data.user_id)), len(np.unique(data.item_id))

@@ -6,7 +6,7 @@ import pandas as pd
 from time import time
 import tensorflow as tf
 from cf_experiments_loop.common import fn
-from cf_experiments_loop.train_model import train_model
+from cf_experiments_loop.train_model import train_model, train_svd
 from cf_experiments_loop.ml_flow.ml_flow import log_to_mlflow
 
 
@@ -43,12 +43,24 @@ def main():
 
     input_data_conf = config['config']['data']['input_data']
     if input_data_conf['movielens']['use']:
-        transformations_fn = fn(input_data_conf['transformations'])
+        transformations_fn = fn(input_data_conf['movielens']['transformations'])
         train_data, test_data, users_number, items_number = transformations_fn(
             dataset_type=input_data_conf['movielens']['type'],
             clear=input_data_conf['clear'],
             movielens_path=input_data_conf['movielens']['path']
         )
+
+    if input_data_conf['goodreads']['use']:
+        goodreads_transform = fn(input_data_conf['goodreads']['transformations'])
+        train_data, test_data, users_number, items_number = goodreads_transform()
+
+    if input_data_conf['bookcrossing']['use']:
+        bookcrossing_transform = fn(input_data_conf['bookcrossing']['transformations'])
+        train_data, test_data, users_number, items_number = bookcrossing_transform()
+
+    if input_data_conf['behance']['use']:
+        bookcrossing_transform = fn(input_data_conf['behance']['transformations'])
+        train_data, test_data, users_number, items_number = bookcrossing_transform()
 
     if users_number and items_number:
         model_conf = config['config']['model']
@@ -91,26 +103,50 @@ def main():
 
                             start = time()
 
-                            history_train, history_eval = train_model(
-                                train_data=train_data,
-                                test_data=test_data,
-                                users_number=users_number,
-                                items_number=users_number,
-                                model_fn=fn(model_path),
-                                loss_fn=loss_fn,
-                                metrics_fn=metrics_fn,
-                                model_dir=model_dir,
-                                log_dir=log_dir,
-                                clear=clear,
-                                batch_size=batch,
-                                epoch=e,
-                                optimizer=optimizer,
-                                learning_rate=learning_rate,
-                                use_learning_rate_schedule=use_learning_rate_schedule
-                            )
+                            if model_path == 'cf_experiments_loop.models.svdpp.svdpp':
+                                history_train, history_eval = train_svd(
+                                    train_data=train_data,
+                                    test_data=test_data,
+                                    users_number=users_number,
+                                    items_number=items_number,
+                                    model_fn=fn(model_path),
+                                    loss_fn=loss_fn,
+                                    metrics_fn=metrics_fn,
+                                    model_dir=model_dir,
+                                    log_dir=log_dir,
+                                    clear=clear,
+                                    batch_size=batch,
+                                    epoch=e,
+                                    optimizer=optimizer()
+                                )
+                            else:
+                                history_train, history_eval = train_model(
+                                    train_data=train_data,
+                                    test_data=test_data,
+                                    users_number=users_number,
+                                    items_number=items_number,
+                                    model_fn=fn(model_path),
+                                    loss_fn=loss_fn,
+                                    metrics_fn=metrics_fn,
+                                    model_dir=model_dir,
+                                    log_dir=log_dir,
+                                    clear=clear,
+                                    batch_size=batch,
+                                    epoch=e,
+                                    optimizer=optimizer()
+                                )
+
                             print('history_eval:', history_eval)
 
                             if log_to_ml_flow:
+
+                                if history_eval is list:
+                                    metrics = {metric.split('.')[-1]:
+                                               history_eval[model_conf['metrics'].index(metric) + 1]
+                                               for metric in model_conf['metrics']}
+                                else:
+                                    metrics = history_eval
+
                                 # write to MLFlow
                                 log_to_mlflow(project_name='Recommendation system experiments',
                                               group_name=fn(model_path).__name__,
@@ -118,12 +154,9 @@ def main():
                                                       'epoch': e,
                                                       'optimizer': 'Adam',
                                                       'run_time': time() - start},
-                                              metrics={
-                                                  metric.split('.')[-1]:
-                                                      history_eval[
-                                                          model_conf['metrics'].index(metric) + 1]
-                                                  for metric in model_conf['metrics']
-                                              },
+
+                                              metrics=metrics,
+
                                               tags={'dataset': dataset_name},
                                               artifacts=[model_dir])
 
@@ -171,7 +204,7 @@ def main():
                 train_data=train_data,
                 test_data=test_data,
                 users_number=users_number,
-                items_number=users_number,
+                items_number=items_number,
                 model_fn=fn(model_path),
                 loss_fn=loss_fn,
                 metrics_fn=metrics_fn,

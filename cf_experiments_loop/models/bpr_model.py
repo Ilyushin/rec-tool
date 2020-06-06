@@ -45,6 +45,7 @@ def bpr_preprocess_data(users: list, items: list, rating: list, rating_threshold
 def identity_loss(_, y_pred):
     return tf.math.reduce_mean(y_pred)
 
+
 @tf.function
 def bpr_triplet_loss(x: dict):
     """

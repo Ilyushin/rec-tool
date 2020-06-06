@@ -6,10 +6,23 @@ config:
         use: true
         type: ml-1m
         path: /tmp/cf_experiments_loop/dataset/movielens
-      transformations: cf_experiments_loop.transformations.movielens.prepare_data
+        transformations: cf_experiments_loop.transformations.movielens.prepare_data
+      goodreads:
+        use: false
+        type: goodreads
+        transformations: cf_experiments_loop.transformations.goodreads.get_goodreads_data
+      bookcrossing:
+        use: false
+        type: bookcrossing
+        transformations: cf_experiments_loop.transformations.bookcrossing.bookcrossing_converting
+      behance:
+        use: false
+        type: behance
+        transformations: cf_experiments_loop.transformations.behance.behance_converting
+
   model:
     model: [
-      cf_experiments_loop.models.embedding.embedding_model,
+      cf_experiments_loop.models.svdpp.svdpp,
       cf_experiments_loop.models.ncf.ncf_model,
       cf_experiments_loop.models.mf.mf,
       cf_experiments_loop.models.svd.svd,
@@ -20,12 +33,14 @@ config:
       cf_experiments_loop.metrics.rmse,
       cf_experiments_loop.metrics.mae
     ]
+
     batch_size: [1024, 2048, 5096]
     epoch: [60, 80, 100]
     optimizers: all
     learning_rate: 0.001
     use_learning_rate_schedule: True
     grid_search: True
+    learning_rate: 0.01
 
 
   result:

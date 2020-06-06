@@ -1,11 +1,9 @@
 import shutil
-from time import time
 import tensorflow as tf
 import numpy as np
-import pandas as pd
 from signal_transformation import helpers
-from cf_experiments_loop.metrics import auc, recall, mse
-from cf_experiments_loop.ml_flow.ml_flow import log_to_mlflow
+from cf_experiments_loop.models.config import Config
+from cf_experiments_loop.models.svdpp import mse, rmse, mae
 
 
 def train_model(
@@ -73,3 +71,50 @@ def train_model(
     print('Eval loss:', history_eval[0])
 
     return history_train, history_eval
+
+
+def train_svd(
+        train_data=None,
+        test_data=None,
+        users_number=None,
+        items_number=None,
+        model_fn=None,
+        loss_fn=None,
+        metrics_fn=None,
+        model_dir=None,
+        log_dir=None,
+        clear=False,
+        optimizer=None,
+        batch_size=64,
+        epoch=10):
+
+    config = Config()
+    config.num_users = users_number
+    config.num_items = items_number
+    config.min_value = np.min(train_data.rating)
+    config.max_value = np.max(train_data.rating)
+
+    with tf.compat.v1.Session() as sess:
+
+        # For SVD++ algorithm, if `dual` is True, then the dual term of items'
+        # implicit feedback will be added into the original SVD++ algorithm.
+        model = model_fn(config, sess, dual=False)
+        model.train(train_data[['user_id', 'item_id']].to_numpy(),
+                    train_data['rating'].to_numpy(),
+                    validation_data=(test_data[['user_id', 'item_id']].to_numpy(),
+                                     test_data['rating'].to_numpy()),
+                    epochs=epoch,
+                    batch_size=batch_size)
+
+        # save model
+        model = model.save_model(model_dir)
+
+        # evaluate with metrics
+        y_pred = model.predict(test_data[['user_id', 'item_id']].to_numpy())
+
+        # collect metrics
+        history_eval = {'mse': mse(np.reshape(test_data['rating'].to_numpy(), (-1, 1)), y_pred),
+                        'rmse': rmse(np.reshape(test_data['rating'].to_numpy(), (-1, 1)), y_pred),
+                        'mae': mae(np.reshape(test_data['rating'].to_numpy(), (-1, 1)), y_pred)}
+
+    return _, history_eval

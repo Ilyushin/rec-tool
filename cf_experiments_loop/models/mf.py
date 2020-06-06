@@ -4,7 +4,7 @@ import numpy as np
 
 def mf(users_number: int, items_number: int):
 
-    latent_dim, max_rating, min_rating, regs = 100, 5, 1, [0, 0]
+    latent_dim, max_rating, min_rating, regs = 10, 5, 1, [0, 0]
 
     # define placeholder.
     user_id_input = tf.keras.layers.Input(shape=(1,), dtype='int32', name='user_input')
@@ -27,8 +27,8 @@ def mf(users_number: int, items_number: int):
     x = tf.keras.layers.Activation('relu')(x)
     x = tf.keras.layers.Dropout(0.5)(x)
 
-    x = tf.keras.layers.Dense(1, kernel_initializer='he_normal')(x)
-    x = tf.keras.layers.Activation('sigmoid')(x)
+    x = tf.keras.layers.Dense(1, activation='relu', kernel_initializer='he_normal')(x)
+    # x = tf.keras.layers.Activation('sigmoid')(x)
     x = tf.keras.layers.Lambda(lambda x: x * (max_rating - min_rating) + min_rating)(x)
 
     model = tf.keras.models.Model(inputs=[user_id_input, item_id_input], outputs=x)
