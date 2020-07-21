@@ -1,3 +1,7 @@
+"""
+SVD++ and TimeSVD++ recommendation models
+"""
+
 import numpy as np
 import tensorflow as tff
 import tensorflow.compat.v1 as tf
@@ -520,7 +524,7 @@ class svdpp(SVD):
                     name='implict_feedback_embedding',
                     shape=[num_users, num_factors],
                     initializer=tf.zeros_initializer(),
-                    regularizer=tf.contrib.layers.l2_regularizer(self.reg_g_i))
+                    regularizer=tf.keras.regularizers.l2(self.reg_g_i))
 
                 g_i = tf.gather(
                     tf.nn.embedding_lookup_sparse(

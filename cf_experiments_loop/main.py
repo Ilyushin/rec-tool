@@ -1,3 +1,7 @@
+"""
+Pipeline main function
+"""
+
 import os
 import sys
 import yaml
@@ -5,9 +9,22 @@ import argparse
 import pandas as pd
 from time import time
 import tensorflow as tf
+from datetime import datetime, timedelta
 from cf_experiments_loop.common import fn
-from cf_experiments_loop.train_model import train_model, train_svd
-from cf_experiments_loop.ml_flow.ml_flow import log_to_mlflow
+from cf_experiments_loop.train_model import train_model, train_svd, train_both_types
+from cf_experiments_loop.ml_flow.ml_flow import log_to_mlflow, get_best_results_mlflow
+
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+
+if gpus:
+    try:
+        tf.config.experimental.set_visible_devices(gpus[1:], 'GPU')
+        logical_gpus = tf.config.experimental.list_logical_devices('GPU')
+        print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPU")
+    except RuntimeError as e:
+        # Visible devices must be set before GPUs have been initialized
+        print(e)
 
 
 def parse_args():
@@ -21,15 +38,31 @@ def parse_args():
 
     """
     parser = argparse.ArgumentParser(description='Model training tool.')
-    parser.add_argument('--config', dest='config', default='config_example.yaml',
+
+    parser.add_argument("--model_dir", "-md", help="set path for the best model")
+    parser.add_argument("--batch_size", "-b", help="set list of batch sizes for grid search")
+    parser.add_argument("--epochs", "-ep", help="set number of epochs")
+
+    parser.add_argument('--config',
+                        dest='config',
+                        default='config_example.yaml',
                         help='Configuration description file')
-    parser.add_argument('--eval-only', dest='eval_only', action='store_true', default=False,
+
+    parser.add_argument('--eval-only',
+                        dest='eval_only',
+                        action='store_true',
+                        default=False,
                         help='Run only evaluation')
 
     return parser.parse_args()
 
 
 def main():
+    """
+    :return:
+    """
+
+    # parse input arguments
     args = parse_args()
 
     if not os.path.exists(args.config):
@@ -40,42 +73,60 @@ def main():
     config = yaml.load(open(args.config), Loader=yaml.FullLoader)
 
     train_data, test_data, users_number, items_number = None, None, None, None
+    period, end_date = None, None
+    dataset_name = None
 
     input_data_conf = config['config']['data']['input_data']
+
     if input_data_conf['movielens']['use']:
         transformations_fn = fn(input_data_conf['movielens']['transformations'])
         train_data, test_data, users_number, items_number = transformations_fn(
             dataset_type=input_data_conf['movielens']['type'],
-            clear=input_data_conf['clear'],
             movielens_path=input_data_conf['movielens']['path']
         )
+        dataset_name = config['config']['data']['input_data']['movielens']['type']
 
     if input_data_conf['goodreads']['use']:
         goodreads_transform = fn(input_data_conf['goodreads']['transformations'])
         train_data, test_data, users_number, items_number = goodreads_transform()
+        dataset_name = config['config']['data']['input_data']['goodreads']['type']
 
     if input_data_conf['bookcrossing']['use']:
         bookcrossing_transform = fn(input_data_conf['bookcrossing']['transformations'])
         train_data, test_data, users_number, items_number = bookcrossing_transform()
+        dataset_name = config['config']['data']['input_data']['bookcrossing']['type']
 
     if input_data_conf['behance']['use']:
-        bookcrossing_transform = fn(input_data_conf['behance']['transformations'])
-        train_data, test_data, users_number, items_number = bookcrossing_transform()
+        behance_transform = fn(input_data_conf['behance']['transformations'])
+        train_data, test_data, users_number, items_number = behance_transform()
+        dataset_name = config['config']['data']['input_data']['behance']['type']
 
     if users_number and items_number:
         model_conf = config['config']['model']
-        dataset_name = config['config']['data']['input_data']['movielens']['type']
         model_fn = model_conf['model']
         loss_fn = fn(model_conf['loss'])
         metrics_fn = [fn(name) for name in model_conf['metrics']]
-        batch_size = model_conf['batch_size']
-        epoch = model_conf['epoch']
+
+        if args.batch_size:
+            batch_size = args.batch_size
+        else:
+            batch_size = model_conf['batch_size']
+
+        if args.epochs:
+            epoch = args.epoch
+        else:
+            epoch = model_conf['epoch']
+
         learning_rate = model_conf['learning_rate']
-        use_learning_rate_schedule = model_conf['use_learning_rate_schedule']
         grid_search = model_conf['grid_search']
         optimizers = model_conf['optimizers']
         result_conf = config['config']['result']
-        model_dir = result_conf['model']
+
+        if args.model_dir:
+            model_dir = args.model_dir
+        else:
+            model_dir = result_conf['model']
+
         log_dir = result_conf['log']
         results_csv = result_conf['results_csv']
         clear = result_conf['clear']
@@ -98,97 +149,65 @@ def main():
         if grid_search and isinstance(batch_size, list) and isinstance(epoch, list):
             for model_path in model_fn:
                 for batch in map(int, batch_size):
-                    for e in map(int, epoch):
+                    for ep in map(int, epoch):
                         for optimizer in opts:
 
                             start = time()
 
-                            if model_path == 'cf_experiments_loop.models.svdpp.svdpp':
-                                history_train, history_eval = train_svd(
-                                    train_data=train_data,
-                                    test_data=test_data,
-                                    users_number=users_number,
-                                    items_number=items_number,
-                                    model_fn=fn(model_path),
-                                    loss_fn=loss_fn,
-                                    metrics_fn=metrics_fn,
-                                    model_dir=model_dir,
-                                    log_dir=log_dir,
-                                    clear=clear,
-                                    batch_size=batch,
-                                    epoch=e,
-                                    optimizer=optimizer()
-                                )
-                            else:
-                                history_train, history_eval = train_model(
-                                    train_data=train_data,
-                                    test_data=test_data,
-                                    users_number=users_number,
-                                    items_number=items_number,
-                                    model_fn=fn(model_path),
-                                    loss_fn=loss_fn,
-                                    metrics_fn=metrics_fn,
-                                    model_dir=model_dir,
-                                    log_dir=log_dir,
-                                    clear=clear,
-                                    batch_size=batch,
-                                    epoch=e,
-                                    optimizer=optimizer()
-                                )
-
-                            print('history_eval:', history_eval)
+                            model, metrics = train_both_types(
+                                model_path=model_path,
+                                metric_names=model_conf['metrics'],
+                                train_data=train_data,
+                                test_data=test_data,
+                                users_number=users_number,
+                                items_number=items_number,
+                                loss_fn=loss_fn,
+                                metrics_fn=metrics_fn,
+                                model_dir=model_dir,
+                                log_dir=log_dir,
+                                clear=clear,
+                                batch_size=batch,
+                                epoch=ep)
 
                             if log_to_ml_flow:
 
-                                if history_eval is list:
-                                    metrics = {metric.split('.')[-1]:
-                                               history_eval[model_conf['metrics'].index(metric) + 1]
-                                               for metric in model_conf['metrics']}
-                                else:
-                                    metrics = history_eval
-
                                 # write to MLFlow
-                                log_to_mlflow(project_name='Recommendation system experiments',
-                                              group_name=fn(model_path).__name__,
-                                              params={'batch_size': batch,
-                                                      'epoch': e,
-                                                      'optimizer': 'Adam',
-                                                      'run_time': time() - start},
-
-                                              metrics=metrics,
-
-                                              tags={'dataset': dataset_name},
-                                              artifacts=[model_dir])
+                                log_to_mlflow(
+                                    project_name='TrendMD experiments',
+                                    group_name=fn(model_path).__name__,
+                                    params={'batch_size': batch,
+                                            'epoch': ep,
+                                            'optimizer': 'Adam',
+                                            'run_time': time() - start,
+                                            'period': period,
+                                            'end_date': end_date},
+                                    metrics=metrics,
+                                    tags={'dataset': dataset_name,
+                                          'model_name': model_path},
+                                    artifacts=[])
 
                                 print('Uploaded to MLFlow')
 
                             # write to csv file
                             if df_results.empty:
                                 df_results = pd.DataFrame(
-                                    get_result(
-                                        model_conf['metrics'],
-                                        history_eval,
-                                        model_path,
-                                        batch,
-                                        e,
-                                        optimizer,
-                                        input_data_conf['movielens']['type'],
-                                        (time() - start),
-                                        as_list=True
-                                    )
+                                    get_result(model_conf['metrics'],
+                                               list(metrics.values()),
+                                               model_path,
+                                               batch,
+                                               ep,
+                                               optimizer,
+                                               input_data_conf['movielens']['type'], as_list=True)
                                 )
                             else:
                                 df_results = df_results.append(
-                                    get_result(
-                                        model_conf['metrics'],
-                                        history_eval,
-                                        model_path,
-                                        batch,
-                                        e,
-                                        optimizer,
-                                        input_data_conf['movielens']['type'],
-                                        (time() - start)
-                                    ),
+                                    get_result(model_conf['metrics'],
+                                               list(metrics.values()),
+                                               model_path,
+                                               batch,
+                                               ep,
+                                               optimizer,
+                                               input_data_conf['movielens']['type']),
                                     ignore_index=True)
 
                             df_results.to_csv(results_csv)
@@ -200,68 +219,61 @@ def main():
 
             model_path = model_conf['model'][0]
             optimizer = opts[0]
-            history_train, history_eval = train_model(
+
+            model, metrics = train_both_types(
+                model_path=model_path,
+                metric_names=model_conf['metrics'],
                 train_data=train_data,
                 test_data=test_data,
                 users_number=users_number,
                 items_number=items_number,
-                model_fn=fn(model_path),
                 loss_fn=loss_fn,
                 metrics_fn=metrics_fn,
                 model_dir=model_dir,
                 log_dir=log_dir,
                 clear=clear,
                 batch_size=batch_size,
-                epoch=epoch,
-                optimizer=optimizer,
-                learning_rate=learning_rate,
-                use_learning_rate_schedule=use_learning_rate_schedule
-            )
+                epoch=epoch)
 
-            # write to MLFlow
             if log_to_ml_flow:
+
                 # write to MLFlow
-                log_to_mlflow(project_name='Recommendation system experiments',
-                              group_name=model_fn.__name__,
-                              params={'batch_size': batch_size,
-                                      'epoch': epoch,
-                                      'optimizer': 'Adam',
-                                      'run_time': time() - start},
-                              metrics={
-                                  metric.split('.')[-1]:
-                                      history_eval[model_conf['metrics'].index(metric) + 1]
-                                  for metric in model_conf['metrics']
-                              },
-                              tags={'dataset': dataset_name},
-                              artifacts=[model_dir])
+                log_to_mlflow(
+                    project_name='TrendMD experiments',
+                    group_name=fn(model_path).__name__,
+                    params={'batch_size': batch_size,
+                            'epoch': epoch,
+                            'optimizer': 'Adam',
+                            'run_time': time() - start,
+                            'period': period,
+                            'end_date': end_date},
+                    metrics=metrics,
+                    tags={'dataset': dataset_name,
+                          'model_name': model_path},
+                    artifacts=[])
+
+                print('Uploaded to MLFlow')
 
             # write to csv file
             if df_results.empty:
                 df_results = pd.DataFrame(
-                    get_result(
-                        model_conf['metrics'],
-                        history_eval,
-                        model_path,
-                        batch_size,
-                        epoch,
-                        optimizer,
-                        [input_data_conf['movielens']['type']],
-                        (time() - start),
-                        as_list=True
-                    )
+                    get_result(model_conf['metrics'],
+                               list(metrics.values()),
+                               model_path,
+                               batch_size,
+                               epoch,
+                               optimizer,
+                               input_data_conf['movielens']['type'], as_list=True)
                 )
             else:
                 df_results = df_results.append(
-                    get_result(
-                        model_conf['metrics'],
-                        history_eval,
-                        model_path,
-                        batch_size,
-                        epoch,
-                        optimizer,
-                        [input_data_conf['movielens']['type']],
-                        (time() - start)
-                    ),
+                    get_result(model_conf['metrics'],
+                               list(metrics.values()),
+                               model_path,
+                               batch_size,
+                               epoch,
+                               optimizer,
+                               input_data_conf['movielens']['type']),
                     ignore_index=True)
 
             df_results.to_csv(results_csv)
@@ -269,7 +281,18 @@ def main():
 
 
 def get_result(metrics, history_eval, model_path, batch_size, epoch, optimizer, dataset_name,
-               run_time, as_list=False):
+               as_list=False):
+    """
+    :param metrics:
+    :param history_eval:
+    :param model_path:
+    :param batch_size:
+    :param epoch:
+    :param optimizer:
+    :param dataset_name:
+    :param as_list:
+    :return:
+    """
     result_dict = {
         fn(metric).__name__: ([history_eval[index + 1]] if as_list else history_eval[index + 1]) for
         index, metric in enumerate(metrics)
@@ -280,7 +303,6 @@ def get_result(metrics, history_eval, model_path, batch_size, epoch, optimizer, 
     result_dict['epoch'] = [epoch] if as_list else epoch
     result_dict['optimizer'] = [optimizer.__name__] if as_list else optimizer.__name__
     result_dict['dataset'] = [dataset_name] if as_list else dataset_name
-    result_dict['run_time'] = [run_time] if as_list else run_time
 
     return result_dict
 

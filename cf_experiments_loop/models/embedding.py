@@ -1,17 +1,27 @@
-import functools
+"""
+Embedding model
+"""
 import tensorflow as tf
 
 
-def embedding_model(users_number=None, items_number=None):
+def embedding_model(users_number: int = None,
+                    items_number: int = None):
+    """
+    :param users_number: int
+    :param items_number: int
+    :return: model
+    """
 
     # creating book embedding path
     items_input = tf.keras.layers.Input(shape=[1], name="items_input")
-    items_embedding = tf.keras.layers.Embedding(items_number + 1, 10, name="items_embeddings")(items_input)
+    items_embedding = tf.keras.layers.Embedding(items_number + 1, 10,
+                                                name="items_embeddings")(items_input)
     items_vec = tf.keras.layers.Flatten(name="items_flatten")(items_embedding)
 
     # creating user embedding path
     users_input = tf.keras.layers.Input(shape=[1], name="user_input")
-    users_embedding = tf.keras.layers.Embedding(users_number + 1, 10, name="users_embedding")(users_input)
+    users_embedding = tf.keras.layers.Embedding(users_number + 1, 10,
+                                                name="users_embedding")(users_input)
     users_vec = tf.keras.layers.Flatten(name="users_flatten")(users_embedding)
 
     # performing dot product and creating model

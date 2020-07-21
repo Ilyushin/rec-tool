@@ -1,11 +1,13 @@
+"""
+Movielens dataset transformation methods
+"""
+
 import os
 import shutil
 import urllib
 import zipfile
-import six
 import pandas as pd
 from sklearn.model_selection import train_test_split
-import tensorflow as tf
 from signal_transformation import helpers
 from cf_experiments_loop.models.bpr_model import bpr_preprocess_data
 from cf_experiments_loop.models.vae import vae_preprocess_data
@@ -24,16 +26,22 @@ RATING_COLUMNS = [USER_COLUMN, ITEM_COLUMN, RATING_COLUMN, TIMESTAMP_COLUMN]
 MOVIE_COLUMNS = [ITEM_COLUMN, TITLE_COLUMN, GENRE_COLUMN]
 
 
-def prepare_data(
-        dataset_type=None,
-        clear=False,
-        movielens_path=None):
+def prepare_data(dataset_type=None,
+                 movielens_path=None):
 
-    ratings_file = "ratings.csv"
-    ratings_file_dat = 'ratings.dat'
+    """
+    :param dataset_type:
+    :param movielens_path:
+    :return:
+    """
+
+    if dataset_type == 'ml-1m':
+        ratings_file = "ratings.dat"
+    else:
+        ratings_file = 'ratings.csv'
+
     working_dir = os.path.join(movielens_path, dataset_type)
     ratings_file_path = os.path.join(working_dir, ratings_file)
-    ratings_file_path_dat = os.path.join(working_dir, ratings_file_dat)
 
     helpers.create_dir(movielens_path)
 
@@ -49,14 +57,12 @@ def prepare_data(
 
     os.remove(zip_path)
 
-    if dataset_type == ML_20M:
-        dataset = pd.read_csv(ratings_file_path)
-        dataset.columns = RATING_COLUMNS
-    elif dataset_type == ML_1M:
-        dataset = pd.read_csv(ratings_file_path_dat, sep='::')
-        dataset.columns = RATING_COLUMNS
+    if dataset_type == 'ml-1m':
+        dataset = pd.read_csv(ratings_file_path, delimiter='::')
     else:
-      raise NameError('Wrong name for the movielens dataset')
+        dataset = pd.read_csv(ratings_file_path)
+    print(dataset)
+    dataset.columns = RATING_COLUMNS
 
     curusers = list(set(dataset["user_id"]))
     users_uuid_int_dict = dict(zip(curusers, range(len(curusers))))
@@ -68,41 +74,43 @@ def prepare_data(
     dataset["item_id"] = dataset["item_id"].apply(lambda x: items_uuid_int_dict[x])
     dataset["rating"] = dataset["rating"].apply(lambda x: int(x))
 
-    users_number = len(dataset.user_id.unique())
-    items_number = len(dataset.item_id.unique())
     train_data, test_data = train_test_split(dataset, test_size=0.2, random_state=42)
 
     shutil.rmtree(movielens_path, ignore_errors=True)
-    return train_data, test_data, users_number, items_number
+    return train_data, test_data, len(dataset.user_id.unique()), len(dataset.item_id.unique())
 
 
 def bpr_movielens(dataset_type=None,
-                  clear=False,
                   movielens_path=None):
+    """
+    :param dataset_type:
+    :param movielens_path:
+    :return:
+    """
     train_data, test_data, users_number, items_number = prepare_data(dataset_type=dataset_type,
-                                                                     clear=clear,
                                                                      movielens_path=movielens_path)
 
     train_data = bpr_preprocess_data(users=train_data.user_id,
                                      items=train_data.item_id,
-                                     rating=train_data.rating,
-                                     rating_threshold=3)
+                                     rating=train_data.rating)
 
     test_data = bpr_preprocess_data(users=test_data.user_id,
                                     items=test_data.item_id,
-                                    rating=test_data.rating,
-                                    rating_threshold=3)
+                                    rating=test_data.rating)
 
     return train_data, test_data, users_number, items_number
 
 
 # preprocessing for vaecf
 def vae_movielens(dataset_type=None,
-                  clear=False,
                   movielens_path=None):
+    """
+    :param dataset_type:
+    :param movielens_path:
+    :return:
+    """
     train_data, test_data, users_number, items_number = prepare_data(dataset_type=dataset_type,
-                                                                     clear=clear,
                                                                      movielens_path=movielens_path)
 
-    return vae_preprocess_data(train_data), vae_preprocess_data(test_data), users_number, items_number
-
+    return vae_preprocess_data(train_data), vae_preprocess_data(
+        test_data), users_number, items_number

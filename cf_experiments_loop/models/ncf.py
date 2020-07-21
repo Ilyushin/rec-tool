@@ -1,23 +1,40 @@
-import functools
+"""
+Neural Collaborative Filtering Model architecture
+"""
+
 import tensorflow as tf
 
-mf_dim = 8
+MF_DIM = 8
 
 
-def mf_slice_fn(x):
-    x = tf.squeeze(x, [1])
-    return x[:, :mf_dim]
+def mf_slice_fn(input_array):
+    """
+    :param input_array:
+    :return:
+    """
+    input_array = tf.squeeze(input_array, [1])
+    return input_array[:, :MF_DIM]
 
 
-def mlp_slice_fn(x):
-    x = tf.squeeze(x, [1])
-    return x[:, mf_dim:]
+def mlp_slice_fn(input_array):
+    """
+    :param input_array:
+    :return:
+    """
+    input_array = tf.squeeze(input_array, [1])
+    return input_array[:, MF_DIM:]
 
 
-def ncf_model(users_number, items_number,
+def ncf_model(users_number: int, items_number: int,
               model_layers=[64, 32, 16, 8],
-              reg_layers=[0.0, 0.0, 0.0, 0.0],
               rating_column='rating'):
+    """
+    :param users_number:
+    :param items_number:
+    :param model_layers:
+    :param rating_column:
+    :return:
+    """
 
     user_input = tf.keras.layers.Input(shape=(1,), dtype='int32', name='user_input')
     item_input = tf.keras.layers.Input(shape=(1,), dtype='int32', name='item_input')
@@ -86,12 +103,6 @@ def ncf_model(users_number, items_number,
     # Print model topology.
     model = tf.keras.models.Model([user_input, item_input], logits)
 
-    # zeros = tf.keras.layers.Lambda(
-    #     lambda x: x * 0)(model.output)
-    #
-    # softmax_logits = tf.keras.layers.concatenate(
-    #     [zeros, model.output],
-    #     axis=-1)
     model.summary()
 
     return model

@@ -1,12 +1,20 @@
+"""
+Behance dataset transformation method
+"""
+
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 
 
-def behance_converting():
-
-    data = np.asarray(pd.read_csv('Behance_appreciate_1M', header=None))
+def behance_converting(file_path='Behance_appreciate_1M'):
+    """
+    :param file_path: str: path for .csv file
+    :return:
+    """
+    data = np.asarray(pd.read_csv(file_path, header=None))
     users, items, rating = [], [], []
+
     for row in data:
         row_data = row[0].split(' ')
         users.append(int(row_data[0]))

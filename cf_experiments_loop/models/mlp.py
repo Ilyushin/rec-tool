@@ -1,7 +1,15 @@
+"""
+Multi-Layer Perceptron model
+"""
 import tensorflow as tf
 
 
 def mlp(users_number: int, items_number: int):
+    """
+    :param users_number: int
+    :param items_number: int
+    :return: MLP model
+    """
     latent_dim = 10
 
     # Define inputs
@@ -9,17 +17,25 @@ def mlp(users_number: int, items_number: int):
     user_input = tf.keras.layers.Input(shape=[1], name='user-input')
 
     # MLP Embeddings
-    movie_embedding_mlp = tf.keras.layers.Embedding(items_number + 1, latent_dim, name='movie-embedding-mlp')(movie_input)
+    movie_embedding_mlp = tf.keras.layers.Embedding(items_number + 1,
+                                                    latent_dim,
+                                                    name='movie-embedding-mlp')(movie_input)
     movie_vec_mlp = tf.keras.layers.Flatten(name='flatten-movie-mlp')(movie_embedding_mlp)
 
-    user_embedding_mlp = tf.keras.layers.Embedding(users_number + 1, latent_dim, name='user-embedding-mlp')(user_input)
+    user_embedding_mlp = tf.keras.layers.Embedding(users_number + 1,
+                                                   latent_dim,
+                                                   name='user-embedding-mlp')(user_input)
     user_vec_mlp = tf.keras.layers.Flatten(name='flatten-user-mlp')(user_embedding_mlp)
 
     # MF Embeddings
-    movie_embedding_mf = tf.keras.layers.Embedding(items_number + 1, latent_dim, name='movie-embedding-mf')(movie_input)
+    movie_embedding_mf = tf.keras.layers.Embedding(items_number + 1,
+                                                   latent_dim,
+                                                   name='movie-embedding-mf')(movie_input)
     movie_vec_mf = tf.keras.layers.Flatten(name='flatten-movie-mf')(movie_embedding_mf)
 
-    user_embedding_mf = tf.keras.layers.Embedding(users_number + 1, latent_dim, name='user-embedding-mf')(user_input)
+    user_embedding_mf = tf.keras.layers.Embedding(users_number + 1,
+                                                  latent_dim,
+                                                  name='user-embedding-mf')(user_input)
     user_vec_mf = tf.keras.layers.Flatten(name='flatten-user-mf')(user_embedding_mf)
 
     # MLP layers

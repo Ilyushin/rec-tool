@@ -1,15 +1,22 @@
-import pandas as pd
-import pickle
-import urllib
-import zipfile
+"""
+Bookcrossing dataset transformation methods
+"""
 import os
 import shutil
+import urllib
+import zipfile
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
 
 def download_bookcrossing(url='http://www2.informatik.uni-freiburg.de/~cziegler/BX/BX-CSV-Dump.zip',
                           zip_path='bookcrossing.zip'):
+    """
+    :param url:
+    :param zip_path:
+    :return:
+    """
     zip_path, _ = urllib.request.urlretrieve(url, zip_path)
     zipfile.ZipFile(zip_path, "r").extractall('bookcrossing')
     os.remove(zip_path)
@@ -25,6 +32,7 @@ def bookcrossing_converting():
 
     curusers = list(set(train_data["User-ID"]))
     users_uuid_int_dict = dict(zip(curusers, range(len(curusers))))
+
     curitems = list(set(train_data["ISBN"]))
     items_uuid_int_dict = dict(zip(curitems, range(len(curitems))))
 
@@ -33,7 +41,6 @@ def bookcrossing_converting():
     train_data["Book-Rating"] = train_data["Book-Rating"].apply(lambda x: int(x))
 
     shutil.rmtree('bookcrossing')
-    print(train_data)
 
     data = pd.DataFrame({'user_id': train_data["User-ID"],
                          'item_id': train_data["ISBN"],

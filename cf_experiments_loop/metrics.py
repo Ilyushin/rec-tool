@@ -1,42 +1,72 @@
-import functools
+"""
+Metrics for recommendation models
+"""
+
 import tensorflow as tf
 import numpy as np
 from sklearn.preprocessing import LabelBinarizer
 
 
-def mse():
-    return tf.keras.metrics.MeanSquaredError()
+def mse(y_true, y_pred):
+    """Returns the mean squared error between
+    ground truths and predictions.
+    """
+    return np.mean((y_true - y_pred) ** 2)
 
 
 def accuracy():
+    """
+    :return:
+    """
     return tf.keras.metrics.Accuracy()
 
 
 def precision():
+    """
+    :return:
+    """
     return tf.keras.metrics.Precision()
 
 
 def recall():
+    """
+    :return:
+    """
     return tf.keras.metrics.Recall()
 
 
 def roc():
+    """
+    :return:
+    """
     return tf.keras.metrics.Accuracy()
 
 
 def f_score():
+    """
+    :return:
+    """
     return tf.keras.metrics.Accuracy()
 
 
 def rmse():
+    """
+    :return:
+    """
     return tf.keras.metrics.RootMeanSquaredError()
 
 
 def mae():
+    """
+    :return:
+    """
     return tf.keras.metrics.MeanAbsoluteError()
 
 
 def auc():
+    """
+    :return:
+    """
     return tf.keras.metrics.AUC()
 
 
@@ -96,14 +126,14 @@ def ndcg_score(ground_truth, predictions, k=5):
     # >>> score = ndcg_score(ground_truth, predictions, k=2)
     0.6666666666
     """
-    lb = LabelBinarizer()
-    lb.fit(range(len(predictions) + 1))
-    T = lb.transform(ground_truth)
+    label_binarizer = LabelBinarizer()
+    label_binarizer .fit(range(len(predictions) + 1))
+    transformations = label_binarizer.transform(ground_truth)
 
     scores = []
 
     # Iterate over each y_true and compute the DCG score
-    for y_true, y_score in zip(T, predictions):
+    for y_true, y_score in zip(transformations, predictions):
         actual = dcg_score(y_true, y_score, k)
         best = dcg_score(y_true, y_true, k)
         score = float(actual) / float(best)

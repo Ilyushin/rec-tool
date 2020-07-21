@@ -1,10 +1,19 @@
+"""
+MLFlow
+"""
 import mlflow
 
-mlflow.set_tracking_uri("http://10.20.2.3:8000")
+
+mlflow.set_tracking_uri("")
 
 
-def log_to_mlflow(project_name: str = None, group_name: str = None, params: dict = None, metrics: dict = None,
-                  tags: dict = None, artifacts: list = []):
+def log_to_mlflow(project_name: str = None,
+                  group_name: str = None,
+                  params: dict = None,
+                  metrics: dict = None,
+                  tags: dict = None,
+                  artifacts: list = []):
+
     """Log parameters and metrics to MLFlow
     If project with provided name does not exist - it will be created
     If experiments group with provided name does not exist - it will be created
@@ -16,7 +25,9 @@ def log_to_mlflow(project_name: str = None, group_name: str = None, params: dict
         Example: stt, tts, recommendations, etc.
 
     group_name: str
-        Group, under which this experiment should be logged. You should understand what experiments in this group are about just by looking at the group name.
+        Group, under which this experiment should be logged.
+        You should understand what experiments in this group are
+        about just by looking at the group name.
         Example: logreg, deepspeech, catboost grid search, etc.
 
     params: dict:
@@ -28,11 +39,14 @@ def log_to_mlflow(project_name: str = None, group_name: str = None, params: dict
         Example: {"running_time": 117.08, "rouge": 0.51}
 
     tags: dict:
-        Any useful tag you can think of and which is not falling under hyperparameters category.
-        Example: {"dataset": "librispeech", "duration": "40h"}, {"features": { ... }}, etc.
+        Any useful tag you can think of and which is not
+         falling under hyperparameters category.
+        Example: {"dataset": "librispeech", "duration": "40h"},
+        {"features": { ... }}, etc.
 
     artifacts(list[str]):
-        List of paths to any file that you think is worth saving. The file should have a reasonable size which should not exceed 20-50MB
+        List of paths to any file that you think is worth saving.
+        The file should have a reasonable size which should not exceed 20-50MB
         Example: path to model, test dataset, dataset sample, etc.
 
     Returns:
@@ -41,7 +55,8 @@ def log_to_mlflow(project_name: str = None, group_name: str = None, params: dict
     """
     mlflow.set_experiment(project_name)
     project_id = mlflow.get_experiment_by_name(project_name).experiment_id
-    group = mlflow.search_runs(experiment_ids=project_id, filter_string=f"tags.`mlflow.runName`='{group_name}'",
+    group = mlflow.search_runs(experiment_ids=project_id,
+                               filter_string=f"tags.`mlflow.runName`='{group_name}'",
                                run_view_type=1)
 
     if group.empty:
@@ -56,3 +71,18 @@ def log_to_mlflow(project_name: str = None, group_name: str = None, params: dict
         for artifact in artifacts:
             mlflow.log_artifact(artifact)
     mlflow.end_run()
+
+
+def get_best_results_mlflow(project_name: str = None):
+    """
+    :param project_name:
+    :return:
+    """
+    project_id = mlflow.get_experiment_by_name(project_name).experiment_id
+    group = mlflow.search_runs(experiment_ids=project_id,
+                               run_view_type=1)
+    experiment_results = group.sort_values(by=['metrics.rmse'], ascending=True).iloc[0]
+    model_name, batch_size, epoch = experiment_results[['tags.model_name'
+                                                        'params.batch_size',
+                                                        'params.epoch']]
+    return model_name, batch_size, epoch

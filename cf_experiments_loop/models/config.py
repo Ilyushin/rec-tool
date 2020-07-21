@@ -1,10 +1,12 @@
+"""
+Config for SVD
+"""
 import numpy as np
 
 
 class Config(object):
     """Configuration class for collaborative filtering model
     """
-
     num_users = None
     num_items = None
     num_factors = 15
@@ -20,4 +22,3 @@ class Config(object):
     reg_q_i = 0.005
     reg_y_u = 0.005
     reg_g_i = 0.005
-
