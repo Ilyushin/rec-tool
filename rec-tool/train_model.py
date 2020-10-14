@@ -218,7 +218,7 @@ def train_both_types(model_path: str,
                      epoch=10
                      ):
 
-    if model_path == 'cf_experiments_loop.models.svdpp.svdpp':
+    if model_path == 'rec-tool.models.svdpp.svdpp':
         model, history_eval = train_svd(
             train_data=train_data,
             test_data=test_data,

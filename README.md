@@ -142,11 +142,11 @@ config:
 
 | Model and paper | Examples |
 | --- | :---: |
-| [Variational Autoencoder for Collaborative Filtering (VAECF)](https://arxiv.org/pdf/1802.05814.pdf) | [vae.py](cf_experiments_loop/models/vae.py)
-| [Singular Value Decomposition (SVD)](https://www.cs.rochester.edu/twiki/pub/Main/HarpSeminar/Factorization_Meets_the_Neighborhood-_a_Multifaceted_Collaborative_Filtering_Model.pdf)| [svd.py](cf_experiments_loop/models/svd.py)
-| [Matrix Factorization (MF)](https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf) | [mf.py](cf_experiments_loop/models/embedding.py)
-| [Multi-Layer Perceptron (MLP)](https://arxiv.org/pdf/1708.05031.pdf) | [mlp.py](cf_experiments_loop/models/embedding.py)
-| [Neural Matrix Factorization (NeuMF) / Neural Collaborative Filtering (NCF)](https://arxiv.org/pdf/1708.05031.pdf) | [ncf.py](cf_experiments_loop/models/ncf.py)
-| [Bayesian Personalized Ranking (BPR)](https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf) | [bpr.py](cf_experiments_loop/models/bpr.py)
-| [Weighted Matrix Factorization (WMF)](http://yifanhu.net/PUB/cf.pdf) |[wmf.py](cf_experiments_loop/models/mf.py)
-| [SVD++](https://surprise.readthedocs.io/en/stable/matrix_factorization.html#surprise.prediction_algorithms.matrix_factorization.SVDpp)| [svdpp.py](cf_experiments_loop/models/svdpp.py)
+| [Variational Autoencoder for Collaborative Filtering (VAECF)](https://arxiv.org/pdf/1802.05814.pdf) | [vae.py](rec-tool/models/vae.py)
+| [Singular Value Decomposition (SVD)](https://www.cs.rochester.edu/twiki/pub/Main/HarpSeminar/Factorization_Meets_the_Neighborhood-_a_Multifaceted_Collaborative_Filtering_Model.pdf)| [svd.py](rec-tool/models/svd.py)
+| [Matrix Factorization (MF)](https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf) | [mf.py](rec-tool/models/embedding.py)
+| [Multi-Layer Perceptron (MLP)](https://arxiv.org/pdf/1708.05031.pdf) | [mlp.py](rec-tool/models/embedding.py)
+| [Neural Matrix Factorization (NeuMF) / Neural Collaborative Filtering (NCF)](https://arxiv.org/pdf/1708.05031.pdf) | [ncf.py](rec-tool/models/ncf.py)
+| [Bayesian Personalized Ranking (BPR)](https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf) | [bpr.py](rec-tool/models/bpr.py)
+| [Weighted Matrix Factorization (WMF)](http://yifanhu.net/PUB/cf.pdf) |[wmf.py](rec-tool/models/mf.py)
+| [SVD++](https://surprise.readthedocs.io/en/stable/matrix_factorization.html#surprise.prediction_algorithms.matrix_factorization.SVDpp)| [svdpp.py](rec-tool/models/svdpp.py)

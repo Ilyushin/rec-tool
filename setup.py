@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name="cf_experiments_loop",
+    name="rec-tool",
     version="1.0.0",
     author="Eugene Ilyushin",
     author_email="eugene.ilyushin@gmail.com",
@@ -16,15 +16,15 @@ setuptools.setup(
     url="https://github.com/Ilyushin/cf-experiments-loop",
     packages=setuptools.find_packages(),
     package_dir={
-        'cf_experiments_loop': 'cf_experiments_loop',
-        'cf_experiments_loop.common': 'cf_experiments_loop/common',
-        'cf_experiments_loop.models': 'cf_experiments_loop/models',
-        'cf_experiments_loop.transformations': 'cf_experiments_loop/transformations',
-        'cf_experiments_loop.ml_flow': 'cf_experiments_loop/ml_flow',
+        'rec-tool': 'rec-tool',
+        'rec-tool.common': 'rec-tool/common',
+        'rec-tool.models': 'rec-tool/models',
+        'rec-tool.transformations': 'rec-tool/transformations',
+        'rec-tool.ml_flow': 'rec-tool/ml_flow',
     },
     entry_points={
         'console_scripts': [
-            'cf_experiments_loop=cf_experiments_loop.main:main',
+            'rec-tool=rec-tool.main:main',
         ],
     },
     classifiers=[
