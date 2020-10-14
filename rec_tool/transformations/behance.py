@@ -7,7 +7,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 
-def behance_converting(file_path='Behance_appreciate_1M'):
+def behance_converting(file_path='behance_appreciate_1M.csv'):
     """
     :param file_path: str: path for .csv file
     :return:
