@@ -10,7 +10,7 @@ chmod +x ./build_local.sh
 
 3. Running an experiments
 ```shell script
-cf_experiments_loop --config ./config_example.yaml
+rec_tool --config ./config_example.yaml
 ```
 ## Config options
 Config example
@@ -24,8 +24,8 @@ There are few additional options like using different metrics for evaluation tog
       movielens:
         use: true
         type: ml-1m
-        path: /tmp/cf_experiments_loop/dataset/movielens
-        transformations: cf_experiments_loop.transformations.movielens.prepare_data
+        path: /tmp/rec_tool/dataset/movielens
+        transformations: rec_tool.transformations.movielens.prepare_data
 ```
 
 The additional datasets could be defined as follows
@@ -34,15 +34,15 @@ The additional datasets could be defined as follows
       goodreads:
         use: false
         type: goodreads
-        transformations: cf_experiments_loop.transformations.goodreads.get_goodreads_data
+        transformations: rec_tool.transformations.goodreads.get_goodreads_data
       bookcrossing:
         use: false
         type: bookcrossing
-        transformations: cf_experiments_loop.transformations.bookcrossing.bookcrossing_converting
+        transformations: rec_tool.transformations.bookcrossing.bookcrossing_converting
       behance:
         use: false
         type: behance
-        transformation: cf_experiments_loop.transformations.behance.behance_converting
+        transformation: rec_tool.transformations.behance.behance_converting
         
 ```
 
@@ -51,22 +51,22 @@ There is option to run several models
 ```        
   model:
     model: [
-      cf_experiments_loop.models.embedding.embedding_model,
-      cf_experiments_loop.models.mlp.mlp,
-      cf_experiments_loop.models.ncf.ncf_model,
-      cf_experiments_loop.models.mf.mf,
-      cf_experiments_loop.models.svd.svd,
+      rec_tool.models.embedding.embedding_model,
+      rec_tool.models.mlp.mlp,
+      rec_tool.models.ncf.ncf_model,
+      rec_tool.models.mf.mf,
+      rec_tool.models.svd.svd,
     ]
 ```
 
 For model evaluation several metrics could be defined as well
 
 ```
-    loss: cf_experiments_loop.losses.mean_squared_error
+    loss: rec_tool.losses.mean_squared_error
     metrics: [
-      cf_experiments_loop.metrics.accuracy,
-      cf_experiments_loop.metrics.rmse,
-      cf_experiments_loop.metrics.mae
+      rec_tool.metrics.accuracy,
+      rec_tool.metrics.rmse,
+      rec_tool.metrics.mae
     ]
 ```
 
@@ -82,8 +82,8 @@ To start GridSearch over batch_size, epochs and learning_rate you need to define
 To save the model you need define a directory for the model. There is also an option to write results into csv file.
 ```
   result:
-    model: /tmp/cf_experiments_loop/model/
-    log: /tmp/cf_experiments_loop/log/
+    model: /tmp/rec_tool/model/
+    log: /tmp/rec_tool/log/
     results_csv: run_results.csv
     log_to_ml_flow: True
     clear: true
@@ -99,27 +99,27 @@ config:
       movielens:
         use: false
         type: ml-1m
-        path: /tmp/cf_experiments_loop/dataset/movielens
-        transformations: cf_experiments_loop.transformations.movielens.prepare_data
+        path: /tmp/rec_tool/dataset/movielens
+        transformations: rec_tool.transformations.movielens.prepare_data
       goodreads:
         use: true
         type: goodreads
-        transformations: cf_experiments_loop.transformations.goodreads.get_goodreads_data
+        transformations: rec_tool.transformations.goodreads.get_goodreads_data
       bookcrossing:
         use: false
         type: bookcrossing
-        transformations: cf_experiments_loop.transformations.bookcrossing.bookcrossing_converting
+        transformations: rec_tool.transformations.bookcrossing.bookcrossing_converting
       behance:
         use: false
         type: behance
-        transformation: cf_experiments_loop.transformations.behance.behance_converting
+        transformation: rec_tool.transformations.behance.behance_converting
   model:
-    model: [cf_experiments_loop.models.ncf.ncf_model]
-    loss: cf_experiments_loop.losses.mean_squared_error
+    model: [rec_tool.models.ncf.ncf_model]
+    loss: rec_tool.losses.mean_squared_error
     metrics: [
-      cf_experiments_loop.metrics.accuracy,
-      cf_experiments_loop.metrics.rmse,
-      cf_experiments_loop.metrics.mae
+      rec_tool.metrics.accuracy,
+      rec_tool.metrics.rmse,
+      rec_tool.metrics.mae
     ]
     batch_size: [1024]
     epoch: [50]
@@ -129,8 +129,8 @@ config:
 
 
   result:
-    model: /tmp/cf_experiments_loop/model/
-    log: /tmp/cf_experiments_loop/log/
+    model: /tmp/rec_tool/model/
+    log: /tmp/rec_tool/log/
     results_csv: run_results.csv
     log_to_ml_flow: True
     clear: true
@@ -142,11 +142,11 @@ config:
 
 | Model and paper | Examples |
 | --- | :---: |
-| [Variational Autoencoder for Collaborative Filtering (VAECF)](https://arxiv.org/pdf/1802.05814.pdf) | [vae.py](rec-tool/models/vae.py)
-| [Singular Value Decomposition (SVD)](https://www.cs.rochester.edu/twiki/pub/Main/HarpSeminar/Factorization_Meets_the_Neighborhood-_a_Multifaceted_Collaborative_Filtering_Model.pdf)| [svd.py](rec-tool/models/svd.py)
-| [Matrix Factorization (MF)](https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf) | [mf.py](rec-tool/models/embedding.py)
-| [Multi-Layer Perceptron (MLP)](https://arxiv.org/pdf/1708.05031.pdf) | [mlp.py](rec-tool/models/embedding.py)
-| [Neural Matrix Factorization (NeuMF) / Neural Collaborative Filtering (NCF)](https://arxiv.org/pdf/1708.05031.pdf) | [ncf.py](rec-tool/models/ncf.py)
-| [Bayesian Personalized Ranking (BPR)](https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf) | [bpr.py](rec-tool/models/bpr.py)
-| [Weighted Matrix Factorization (WMF)](http://yifanhu.net/PUB/cf.pdf) |[wmf.py](rec-tool/models/mf.py)
-| [SVD++](https://surprise.readthedocs.io/en/stable/matrix_factorization.html#surprise.prediction_algorithms.matrix_factorization.SVDpp)| [svdpp.py](rec-tool/models/svdpp.py)
+| [Variational Autoencoder for Collaborative Filtering (VAECF)](https://arxiv.org/pdf/1802.05814.pdf) | [vae.py](rec_tool/models/vae.py)
+| [Singular Value Decomposition (SVD)](https://www.cs.rochester.edu/twiki/pub/Main/HarpSeminar/Factorization_Meets_the_Neighborhood-_a_Multifaceted_Collaborative_Filtering_Model.pdf)| [svd.py](rec_tool/models/svd.py)
+| [Matrix Factorization (MF)](https://datajobs.com/data-science-repo/Recommender-Systems-[Netflix].pdf) | [mf.py](rec_tool/models/embedding.py)
+| [Multi-Layer Perceptron (MLP)](https://arxiv.org/pdf/1708.05031.pdf) | [mlp.py](rec_tool/models/embedding.py)
+| [Neural Matrix Factorization (NeuMF) / Neural Collaborative Filtering (NCF)](https://arxiv.org/pdf/1708.05031.pdf) | [ncf.py](rec_tool/models/ncf.py)
+| [Bayesian Personalized Ranking (BPR)](https://arxiv.org/ftp/arxiv/papers/1205/1205.2618.pdf) | [bpr.py](rec_tool/models/bpr.py)
+| [Weighted Matrix Factorization (WMF)](http://yifanhu.net/PUB/cf.pdf) |[wmf.py](rec_tool/models/mf.py)
+| [SVD++](https://surprise.readthedocs.io/en/stable/matrix_factorization.html#surprise.prediction_algorithms.matrix_factorization.SVDpp)| [svdpp.py](rec_tool/models/svdpp.py)

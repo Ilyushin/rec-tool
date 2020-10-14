@@ -6,29 +6,29 @@ config:
         use: true
         type: ml-1m
         path: movielens
-        transformations: rec-tool.transformations.movielens.prepare_data
+        transformations: rec_tool.transformations.movielens.prepare_data
       goodreads:
         use: false
         type: goodreads
-        transformations: rec-tool.transformations.goodreads.get_goodreads_data
+        transformations: rec_tool.transformations.goodreads.get_goodreads_data
       bookcrossing:
         use: false
         type: bookcrossing
-        transformations: rec-tool.transformations.bookcrossing.bookcrossing_converting
+        transformations: rec_tool.transformations.bookcrossing.bookcrossing_converting
       behance:
         use: false
         type: behance
-        transformations: rec-tool.transformations.behance.behance_converting
+        transformations: rec_tool.transformations.behance.behance_converting
 
   model:
     model: [
-      rec-tool.models.svd.svd,
+      rec_tool.models.svd.svd,
     ]
-    loss: rec-tool.losses.mean_squared_error
+    loss: rec_tool.losses.mean_squared_error
     metrics: [
-      rec-tool.metrics.accuracy,
-      rec-tool.metrics.rmse,
-      rec-tool.metrics.mae
+      rec_tool.metrics.accuracy,
+      rec_tool.metrics.rmse,
+      rec_tool.metrics.mae
     ]
     batch_size: [1024, 2048, 4096]
     epoch: [50, 100, 200]
@@ -38,8 +38,8 @@ config:
 
 
   result:
-    model: /tmp/rec-tool/model/
-    log: /tmp/rec-tool/log/
+    model: /tmp/rec_tool/model/
+    log: /tmp/rec_tool/log/
     results_csv: run_results.csv
     log_to_ml_flow: false
     clear: true
